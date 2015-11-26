@@ -20,7 +20,7 @@ $app = new Slim([
     'debug'          => true,
     'templates.path' => 'assets/templates'
 ]);
-$pdo = new PDO('mysql:dbname=budget;host:127.0.0.1','root','root');
+include '../config.php';
 $db  = new NotORM($pdo);
 
 /**
@@ -64,6 +64,7 @@ $app->group('/api', function () use ($app, $db) {
         * @param $db   Database connection
         */
         $app->get('/transactions', function ( ) use ($app, $db) {
+
             try {
                 $transactions = $db
                     ->transactions()

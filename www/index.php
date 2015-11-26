@@ -43,11 +43,21 @@ $db  = new NotORM($pdo);
 
 
 /**
- * Main display
+ * Simple, catchall routing. Specific routing is handled by Backbone
+ *
  * @param $app  Application
  * @param $db   Database connection
+ * @todo  Add authentification?
+ * @see   https://gist.github.com/funkatron/1447169
  */
-$app->get('/', function () use ($app, $db) {
+$app->get('(/)(:foo)', function ($foo = null) use ($app, $db) {
+    $app->render('index');
+    /*
+    // PHP Mustache method
+    $app->view()->setData([
+        'title' => 'Hello world.'
+    ]);
+     */
 });
 
 /*
@@ -96,14 +106,10 @@ $app->group('/api', function () use ($app, $db) {
                     $_transactions[] = $_transaction;
                 }
 
-                if (count($_transactions)) {
-                    $response = [
-                        'results' => $_transactions,
-                        'status' => 'OK'
-                    ];
-                } else {
-                    throw new PDOException('No transactions found.');
-                }
+                $response = [
+                    'results' => $_transactions,
+                    'status' => 'OK'
+                ];
             } catch(PDOException $e) {
                 $response = [
                     'error_message' => $e->getMessage(),
@@ -173,7 +179,7 @@ $app->group('/api', function () use ($app, $db) {
             try{
 
                 $data = $app->request()->put();
-                $post = $db->{'transactions'}[$id];
+                $transaction = $db->{'transactions'}[$id];
 
                 $app->response()->headers->set('Content-Type', 'application/json');
 

@@ -1,0 +1,9 @@
+.DS_Store
+
+# EventFeed
+
+# Package managers
+composer.lock
+composer.phar
+vendor/
+node_modules/

@@ -172,6 +172,58 @@ $app->group('/api', function () use ($app, $db) {
             /**
              * @todo Everything
              */
+
+            $request_body = $app->request()->getBody();
+            $data = json_decode($request_body);
+
+            if (empty($data->timestamp)) {
+                $timestamp_date = new \DateTime( 'now', new \DateTimeZone('America/Montreal') );
+                $timestamp = $timestamp_date->getTimestamp();
+            } else {
+                var_dump($data->timestamp);
+                die();
+            }
+
+            $amount      = empty($data->amount) ? '' : $data->amount;
+            $category    = empty($data->category) ? '' : $data->category;
+            $description = empty($data->description) ? '' : $data->description;
+
+            $error = false;
+
+            // Generate a unique id for the post
+            $generator = new RandomStringGenerator;
+            $token = $generator->generate(40);
+
+            try {
+                if ($amount === '' || $category === '') {
+                    throw new Exception('Empty amount or category');
+                } else {
+                    $transaction = [
+                        'id'          => $token,
+                        'timestamp'   => $timestamp,
+                        'category'    => $category,
+                        'description' => $description
+                    ];
+
+                    $result = $db->transactions->insert($transaction);
+
+                    $response = [
+                        'results' => $result,
+                        'status' => 'OK'
+                    ];
+                }
+            } catch(Exception $e) {
+                $response = [
+                    'error_message' => $e->getMessage(),
+                    'results' => [],
+                    'status' => 'ERROR'
+                ];
+            }
+
+            $app->response()->headers->set('Content-Type', 'application/json');
+            $app->response()->setStatus(200);
+            echo json_encode($response);
+            die();
         });
 
         /**

@@ -29,12 +29,6 @@ define([
                 response.status = 'ERROR';
             }
 
-            if (attrs.timestamp.length === 0) {
-                response.fields.push('timestamp');
-                response.status = 'ERROR';
-            }
-            console.log(response);
-
             if (response.status !== 'OK') {
                 return response;
             }

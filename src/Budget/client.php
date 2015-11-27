@@ -15,7 +15,9 @@
 
 namespace Budget;
 
-class Client {
+use \Utils\Base;
+
+class Client extends Base {
 
 	public static function table()
 	{

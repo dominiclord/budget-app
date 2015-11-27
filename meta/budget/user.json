@@ -1,0 +1,29 @@
+{
+	"properties":{
+		"username":{
+			"type":"string"
+		},
+		"password":{
+			"type":"string"
+		},
+		"firstname":{
+			"type":"string"
+		},
+		"lastname":{
+			"type":"string"
+		},
+		"last_modified":{
+			"type":"date"
+		},
+		"created_at":{
+			"type":"date"
+		},
+		"id":{
+			"type":"id"
+		}
+	},
+	"key":"id",
+	"defaults":{
+		"username":"John"
+	}
+}

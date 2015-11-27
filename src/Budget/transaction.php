@@ -13,7 +13,9 @@
 
 namespace Budget;
 
-class Transaction {
+use \Utils\Base;
+
+class Transaction extends Base {
 
 	public static function table()
 	{

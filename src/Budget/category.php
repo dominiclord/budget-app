@@ -12,7 +12,9 @@
 
 namespace Budget;
 
-class Category {
+use \Utils\Base;
+
+class Category extends Base {
 
 	public static function table()
 	{

@@ -3,9 +3,10 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'collections/transactions',
     'mustache',
     'common'
-], function ($, _, Backbone, Mustache, Common) {
+], function ($, _, Backbone, Transactions, Mustache, Common) {
     'use strict';
 
     // Our overall **AppView** is the top-level piece of UI.
@@ -13,56 +14,43 @@ define([
 
         // Instead of generating a new element, bind to the existing skeleton of
         // the App already present in the HTML.
-        el: '#todoapp',
+        el: '.js-newTransactionView',
 
-        // Compile our stats template
-        // template: _.template(statsTemplate),
-
-        // Delegated events for creating new items, and clearing completed ones.
         events: {
+            'submit .js-newTransactionForm': 'submitForm'
         },
 
-        // At initialization we bind to the relevant events on the `Todos`
-        // collection, when items are added or changed. Kick things off by
-        // loading any preexisting todos that might be saved in *localStorage*.
         initialize: function () {
+            this.$form = this.$('.js-newTransactionForm');
+
+            this.Transaction = Transactions.create();
+            this.listenTo(this.Transaction, 'sync', this.displaySyncResponse);
+            //this.listenTo(this.Transaction, 'request', this.displayLoader);
+            //this.listenTo(this.Transaction, 'invalid', this.displayFormErrors);
+            /*
+            $(':input','#myform')
+              .not(':button, :submit, :reset, :hidden')
+              .val('')
+              .removeAttr('checked')
+              .removeAttr('selected');
+             */
         },
 
-        // Re-rendering the App just means refreshing the statistics -- the rest
-        // of the app doesn't change.
-        render: function () {
-        },
-
-        // Add a single todo item to the list by creating a view for it, and
-        // appending its element to the `<ul>`.
-        addOne: function (todo) {
-        },
-
-        // Add all items in the **Todos** collection at once.
-        addAll: function () {
-        },
-
-        filterOne: function (todo) {
-        },
-
-        filterAll: function () {
-        },
-
-        // Generate the attributes for a new Todo item.
         newAttributes: function () {
+            return this.$form.serializeObject();
         },
 
-        // If you hit return in the main input field, create new **Todo** model,
-        // persisting it to *localStorage*.
-        createOnEnter: function (e) {
+        submitForm: function (e) {
+            e.preventDefault();
+
+            // Clean the form of errors
+            // @todo
+
+            var attributes = this.newAttributes();
+            this.Transaction.set(attributes);
+            this.Transaction.save();
         },
 
-        // Clear all completed todo items, destroying their models.
-        clearCompleted: function () {
-        },
-
-        toggleAllComplete: function () {
-        }
     });
 
     return AppView;

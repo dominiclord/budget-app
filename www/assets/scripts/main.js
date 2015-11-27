@@ -15,6 +15,11 @@ require.config({
                 'jquery'
             ],
             exports: 'Backbone'
+        },
+        materialize: {
+            deps: [
+                'hammerjs'
+            ]
         }
     },
     paths: {
@@ -22,6 +27,7 @@ require.config({
         underscore: '../../../node_modules/underscore/underscore',
         backbone: '../../../node_modules/backbone/backbone',
         materialize: '../../../node_modules/materialize-css/dist/js/materialize.min',
+        hammerjs: '../../../node_modules/hammerjs/hammer.min',
         text: '../../../node_modules/requirejs-text/text',
         mustache: '../../../node_modules/mustache/mustache.min'
     }

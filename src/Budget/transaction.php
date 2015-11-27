@@ -15,4 +15,8 @@ namespace Budget;
 
 class Transaction {
 
+	public static function table()
+	{
+		return 'transactions';
+	}
 }

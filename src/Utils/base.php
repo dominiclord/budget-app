@@ -17,11 +17,50 @@ class Base {
 
 	private $_data;
 
+	/**
+	 * Keep DATAbase connection
+	 * @var [NotORM]
+	 */
+	public static $_db; // == PDO
+	public static $_notorm;
+
 	public function __construct( $data = null )
 	{
 		if ($data) {
 			$this->set_data( $data );
 		}
+
+	}
+
+	public static function db()
+	{
+		if (!self::$_db) {
+			$cfg = include '../config.php';
+			$str = 'mysql:dbname='.$cfg['database'].';host:'.$cfg['host'];
+			$pass = $cfg['password'];
+			$username = $cfg['username'];
+
+			$pdo = new \PDO($str, $username, $pass);
+
+			self::$_db = $pdo;
+		}
+
+		return self::$_db;
+	}
+
+	public static function notorm()
+	{
+		if (!self::$_notorm) {
+			$pdo = self::db();
+			self::$_notorm = new \NotORM( $pdo );
+		}
+
+		return self::$_notorm;
+	}
+
+	private function _table()
+	{
+		return static::table();
 	}
 
 	/**

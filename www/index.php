@@ -22,6 +22,9 @@ use \Budget\User;
 use \Budget\Transaction;
 use \Budget\Category;
 use \Utils\Config;
+use \Utils\Base;
+
+
 
 /**
 * That would be config matters
@@ -39,8 +42,10 @@ $app = new Slim([
     'templates.path' => 'assets/templates'
 ]);
 include '../config.php';
-$db  = new NotORM($pdo);
+// $db  = new NotORM($pdo);
 
+// DB
+$db = Base::notorm();
 
 /**
  * Main display

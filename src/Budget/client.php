@@ -17,7 +17,8 @@ namespace Budget;
 
 class Client {
 
-	public function __construct($data=null) {
-
+	public static function table()
+	{
+		return 'clients';
 	}
 }

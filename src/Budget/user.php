@@ -16,4 +16,9 @@ use \Utils\Base;
 
 class User extends Base {
 
+
+	public static function table()
+	{
+		return 'users';
+	}
 }

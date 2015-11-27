@@ -14,4 +14,8 @@ namespace Budget;
 
 class Category {
 
+	public static function table()
+	{
+		return 'categories';
+	}
 }

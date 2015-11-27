@@ -8,6 +8,7 @@
         <title>Budget app</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.3/css/materialize.min.css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href="assets/styles/main.css" rel="stylesheet">
     </head>
     <body>
         <main class="js-newTransactionView">
@@ -24,8 +25,6 @@
                                 <input id="input_category" name="category" type="text" class="validate">
                                 <label for="input_category">Category</label>
                             </div>
-                        </div>
-                        <div class="row">
                             <div class="input-field col s12 m6">
                                 <input name="timestamp" type="date" class="validate datepicker">
                             </div>
@@ -35,11 +34,16 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="input-field col s12">
+                            <div class="input-field col s12 m6">
+                            </div>
+                            <div class="input-field col s12 m6 right-align">
                                 <button class="btn waves-effect waves-light" type="submit">Save
                                     <i class="material-icons right">done</i>
                                 </button>
                             </div>
+                        </div>
+                        <div class="row c-loader js-newTransactionMessage">
+                            <h3>Transaction saved</h3>
                         </div>
                     </form>
                 </div>

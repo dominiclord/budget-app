@@ -1,0 +1,15 @@
+
+// Basic loader
+// ======================================================
+
+.c-loader
+    opacity 0
+    transition-property opacity
+    transition-duration 1s
+    will-change opacity
+
+    .is-transmitting-transaction &
+        opacity 1
+
+    .is-transmission-completed &
+        opacity 0

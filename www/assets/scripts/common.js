@@ -4,7 +4,7 @@
 define([
     'jquery',
     'materialize'
-], function ($) {
+], function ($, materialize) {
     $.fn.serializeObject = function() {
         var o = {};
         var a = this.serializeArray();
@@ -20,6 +20,9 @@ define([
         });
         return o;
     };
+
+    // @todo figure out why this doesn't work automatically
+    Waves.displayEffect();
 
     return {
         ENTER_KEY: 13,

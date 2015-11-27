@@ -22,18 +22,12 @@ define([
 
         initialize: function () {
             this.$form = this.$('.js-newTransactionForm');
+            this.$confirmation = this.$('.js-newTransactionMessage');
 
             this.Transaction = Transactions.create();
-            this.listenTo(this.Transaction, 'sync', this.displaySyncResponse);
-            //this.listenTo(this.Transaction, 'request', this.displayLoader);
+            this.listenTo(this.Transaction, 'sync', this.manageSyncResponse);
+            this.listenTo(this.Transaction, 'request', this.displayLoader);
             //this.listenTo(this.Transaction, 'invalid', this.displayFormErrors);
-            /*
-            $(':input','#myform')
-              .not(':button, :submit, :reset, :hidden')
-              .val('')
-              .removeAttr('checked')
-              .removeAttr('selected');
-             */
         },
 
         newAttributes: function () {
@@ -50,6 +44,45 @@ define([
             this.Transaction.set(attributes);
             this.Transaction.save();
         },
+
+        displayLoader: function (model, response, options) {
+            $('body').addClass('is-transmitting-transaction');
+        },
+
+        manageSyncResponse: function (e) {
+            var self = this;
+
+            self.$form.find(':input')
+                .not(':button, :submit, :reset, :hidden')
+                .val('')
+                .removeAttr('checked')
+                .removeAttr('selected');
+
+            /*
+            self.$confirmation.fadeIn(200,function () {
+                self.$confirmation.delay(2000).fadeOut(200);
+            });
+            */
+
+            window.setTimeout(function(){
+                $('body')
+                    .addClass('is-transmission-completed')
+                    .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
+                        function() {
+                            $('body')
+                                .removeClass('is-transmitting-transaction is-transmission-completed')
+                                .unbind('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend');
+                        });
+            }, 2000);
+
+            /*
+            window.setTimeout(function(){
+                var rendered = Mustache.to_html(successTemplate, self.Post.toJSON());
+                self.$user_form.html(rendered);
+            }, 1000);
+            */
+
+        }
 
     });
 

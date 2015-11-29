@@ -1,40 +1,36 @@
 <?php
 
 /**
-* Main budget functions and routing
-*
-* @author Benjamin Roch <roch.bene@gmail.com>
-* @author Dominic Lord <dlord@outlook.com>
-* @copyright 2015 dominiclord
-* @link http://github.com/dominiclord/budget-app
-*/
+ * Main budget functions and routing
+ *
+ * @author Benjamin Roch <roch.bene@gmail.com>
+ * @author Dominic Lord <dlord@outlook.com>
+ * @copyright 2015 dominiclord
+ * @link http://github.com/dominiclord/budget-app
+ */
 
 use \Slim\Slim as Slim;
-use \Utils\RandomStringGenerator;
 
 /**
-* This is how we will call classes
-* autoload will make sure everything is available
-* @todo Move this.
-*/
+ * This is how we will call classes
+ * autoload will make sure everything is available
+ * @todo Move this.
+ */
 use \Budget\Client;
 use \Budget\User;
 use \Budget\Transaction;
 use \Budget\Category;
 use \Utils\Config;
 use \Utils\Base;
-
-
+use \Utils\RandomStringGenerator;
 
 /**
-* That would be config matters
-* @todo Move that shit
-*/
+ * That would be config matters
+ * @todo Move that shit
+ */
 $autoloader = require_once '../vendor/autoload.php';
 $autoloader->add('Budget\\', __DIR__.'/../src/');
 $autoloader->add('Utils\\', __DIR__.'/../src/');
-
-require_once '../utils/index.php';
 
 $app = new Slim([
     'view'           => new \Slim\Mustache\Mustache(),

@@ -1,14 +1,18 @@
 <?php
+/**
+ * Class RandomStringGenerator
+ * Allows us to generate a unique ID for objects
+ *
+ * @author Benjamin Roch <roch.bene@gmail.com>
+ * @author Dominic Lord <dlord@outlook.com>
+ * @copyright 2015
+ * @version 2015-11-26
+ * @since Version 2015-11-26
+ * @see http://stackoverflow.com/a/13733588/1056679
+ */
 
 namespace Utils;
 
-/**
-* Class RandomStringGenerator
-* @package Utils
-*
-* Solution taken from here:
-* http://stackoverflow.com/a/13733588/1056679
-*/
 class RandomStringGenerator
 {
     /** @var string */

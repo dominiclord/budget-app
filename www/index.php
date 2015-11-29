@@ -9,8 +9,6 @@
  * @link http://github.com/dominiclord/budget-app
  */
 
-use \Slim\Slim as Slim;
-
 /**
  * This is how we will call classes
  * autoload will make sure everything is available
@@ -32,11 +30,16 @@ $autoloader = require_once '../vendor/autoload.php';
 $autoloader->add('Budget\\', __DIR__.'/../src/');
 $autoloader->add('Utils\\', __DIR__.'/../src/');
 
-$app = new Slim([
-    'view'           => new \Slim\Mustache\Mustache(),
-    'debug'          => true,
-    'templates.path' => 'assets/templates'
-]);
+require_once('../mustache-view.php');
+
+$container = new \Slim\Container;
+$container['view'] = function ($c) {
+    $view = new \Slim\Views\Mustache('assets/templates');
+    return $view;
+};
+
+$app = new \Slim\App($container);
+
 include '../config.php';
 // $db  = new NotORM($pdo);
 
@@ -49,10 +52,9 @@ $db = Base::notorm();
  * @param $app  Application
  * @param $db   Database connection
  * @todo  Add authentification?
- * @see   https://gist.github.com/funkatron/1447169
  */
-$app->get('(/)(:foo)', function ($foo = null) use ($app, $db) {
-    $app->render('index');
+$app->get('/[{foo}]', function ($request, $response, $args) {
+    return $this->view->render($response, 'index', $args);
     /*
     // PHP Mustache method
     $app->view()->setData([
@@ -64,11 +66,11 @@ $app->get('(/)(:foo)', function ($foo = null) use ($app, $db) {
 /*
 =============================
 
-URL                                 HTTP Method  Operation
-/api/v1/transations                 GET          Returns an array of transactions
-/api/v1/transations/:id             GET          Returns the transaction with id of :id
-/api/v1/transations                 POST         Adds a new transaction and returns it with an id attribute added
-/api/v1/transations/:id             PUT          Updates the transaction with id of :id
+URL                          HTTP Method      Operation
+/api/v1/transations          GET              Returns an array of transactions
+/api/v1/transations/:id      GET              Returns the transaction with id of :id
+/api/v1/transations          POST             Adds a new transaction and returns it with an id attribute added
+/api/v1/transations/:id      PUT              Updates the transaction with id of :id
 
 =============================
 */

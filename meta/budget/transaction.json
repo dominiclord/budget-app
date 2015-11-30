@@ -1,0 +1,17 @@
+{
+	"properties":{
+		"id":{
+			"type":"string"
+		},
+		"amount":{
+			"type":"float"
+		},
+		"category":{
+			"type":"string"
+		},
+		"description":{
+			"type":"string"
+		}
+	},
+	"key":"id"
+}

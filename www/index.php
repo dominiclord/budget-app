@@ -80,22 +80,21 @@ URL                          HTTP Method      Operation
  * @param $app  Application
  * @param $db   Database connection
  */
-$app->group('/api', function () use ($app, $db) {
+$app->group('/api', function () use ($db) {
 
     /**
      * API group v1
      * @param $app  Application
      * @param $db   Database connection
      */
-    $app->group('/v1', function () use ($app, $db) {
+    $this->group('/v1', function () use ($db) {
 
         /**
         * Fetch all transactions
-        * @todo Add authentification
-        * @param $app  Application
         * @param $db   Database connection
+        * @todo Add authentification
         */
-        $app->get('/transactions', function ( ) use ($app, $db) {
+        $this->get('/transactions', function ($request, $response) use ($db) {
 
             try {
                 $transactions = $db
@@ -109,82 +108,76 @@ $app->group('/api', function () use ($app, $db) {
                     $_transactions[] = $_transaction;
                 }
 
-                $response = [
+                $body = [
                     'results' => $_transactions,
                     'status' => 'OK'
                 ];
-            } catch(PDOException $e) {
-                $response = [
+            } catch (PDOException $e) {
+                $body = [
                     'error_message' => $e->getMessage(),
                     'results' => [],
                     'status' => 'ERROR'
                 ];
             }
 
-            $app->response()->headers->set('Content-Type', 'application/json');
-            $app->response()->setStatus(200);
-            echo json_encode($response);
-            die();
+            $response->write(json_encode($body));
+            $response->withHeader('Content-Type', 'application/json');
+            $response->withStatus(200);
+            return $response;
         });
 
         /**
          * Fetch a single transaction
-         * @todo Add authentification
-         * @param $app  Application
          * @param $db   Database connection
+         * @todo Add authentification
          */
-        $app->get('/transactions/:id', function ($id = null) use ($app, $db) {
+        $this->get('/transactions/{id}', function ($request, $response, $args) use ($db) {
 
             try {
-                $row = $db->{'transactions'}[$id];
+                $row = $db->{'transactions'}[$args['id']];
 
                 if ($row) {
-                    $response = [
+                    $body = [
                         'results' => $row,
                         'status' => 'OK'
                     ];
                 } else {
                     throw new PDOException('No transactions found.');
                 }
-            } catch(PDOException $e) {
-                $response = [
+            } catch (PDOException $e) {
+                $body = [
                     'error_message' => $e->getMessage(),
                     'results' => [],
                     'status' => 'ERROR'
                 ];
             }
 
-            $app->response()->headers->set('Content-Type', 'application/json');
-            $app->response()->setStatus(200);
-            echo json_encode($response);
-            die();
+            $response->write(json_encode($body));
+            $response->withHeader('Content-Type', 'application/json');
+            $response->withStatus(200);
+            return $response;
         });
 
         /**
          * Create a transaction
-         * @todo Add authentification
-         * @param $app  Application
          * @param $db   Database connection
+         * @todo Everything
+         * @todo Add authentification
          */
-        $app->post('/transactions', function () use ($app, $db) {
-            /**
-             * @todo Everything
-             */
+        $this->post('/transactions', function ($request, $response, $args) use ($db) {
+            $data = $request->getParsedBody();
 
-            $request_body = $app->request()->getBody();
-            $data = json_decode($request_body);
-
-            if (empty($data->timestamp)) {
+            if (empty($data['timestamp'])) {
                 $timestamp_date = new \DateTime( 'now', new \DateTimeZone('America/Montreal') );
                 $timestamp = $timestamp_date->getTimestamp();
             } else {
-                var_dump($data->timestamp);
+                var_dump($data['timestamp']);
                 die();
             }
 
-            $amount      = empty($data->amount) ? '' : $data->amount;
-            $category    = empty($data->category) ? '' : $data->category;
-            $description = empty($data->description) ? '' : $data->description;
+            $amount      = empty($data['amount']) ? '' : $data['amount'];
+            $category    = empty($data['category']) ? '' : $data['category'];
+            $description = empty($data['description']) ? '' : $data['description'];
 
             $error = false;
 
@@ -205,42 +198,38 @@ $app->group('/api', function () use ($app, $db) {
 
                     $result = $db->transactions->insert($transaction);
 
-                    $response = [
+                    $body = [
                         'results' => $result,
                         'status' => 'OK'
                     ];
                 }
-            } catch(Exception $e) {
-                $response = [
+            } catch (Exception $e) {
+                $body = [
                     'error_message' => $e->getMessage(),
                     'results' => [],
                     'status' => 'ERROR'
                 ];
             }
 
-            $app->response()->headers->set('Content-Type', 'application/json');
-            $app->response()->setStatus(200);
-            echo json_encode($response);
-            die();
+            $response->write(json_encode($body));
+            $response->withHeader('Content-Type', 'application/json');
+            $response->withStatus(200);
+            return $response;
         });
 
         /**
          * Modify a post
-         * @todo Add authentification
-         * @param $app  Application
          * @param $db   Database connection
+         * @todo Add authentification
          */
-        $app->put('/transaction/:id', function ( $id = null ) use ( $app, $db ) {
+        $this->put('/transaction/{id}', function ($request, $response, $args) use ($db) {
+            $data = $request->getParsedBody();
+
             try{
-
-                $data = $app->request()->put();
-                $transaction = $db->{'transactions'}[$id];
-
-                $app->response()->headers->set('Content-Type', 'application/json');
+                $transaction = $db->{'transactions'}[$args['id']];
 
                 if ($transaction) {
-
-                    $timestamp_date = new \DateTime( 'now', new \DateTimeZone('America/Montreal') );
+                    $timestamp_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
                     $timestamp = $timestamp_date->getTimestamp();
 
                     foreach ($data as $key => $value) {
@@ -248,24 +237,33 @@ $app->group('/api', function () use ($app, $db) {
                     }
 
                     // If no status is set, data is being modified, and we need to update the modified_timestamp
-                    if( empty( $data['status'] ) ) {
+                    if (empty($data['status'])) {
                         $transaction['timestamp_modified'] = $timestamp;
                     }
 
-                    $transaction->update();
+                    $result = $transaction->update();
 
-                    $app->response->setStatus(200);
-                    $app->response()->headers->set('Content-Type', 'application/json');
-                    echo '{"success":{"text":"Transaction modified successfully"}}';
+                    $response->withStatus(200);
+                    $body = [
+                        'results' => $result,
+                        'status' => 'OK'
+                    ];
                 } else {
                     throw new PDOException('No transactions found.');
                 }
 
-            } catch(PDOException $e) {
-                $app->response()->setStatus(404);
-                echo '{"error":{"text":"'. $e->getMessage() .'"}}';
+            } catch (PDOException $e) {
+                $response->withStatus(404);
+                $body = [
+                    'error_message' => $e->getMessage(),
+                    'results' => [],
+                    'status' => 'ERROR'
+                ];
             }
-            die();
+
+            $response->write(json_encode($body));
+            $response->withHeader('Content-Type', 'application/json');
+            return $response;
         });
 
     });

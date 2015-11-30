@@ -48,7 +48,7 @@ class Base {
 	private function _load_meta()
 	{
 		$class = get_class($this);
-		$path = '../meta'.DIRECTORY_SEPARATOR.strtolower($class).'.json';
+		$path = '../meta' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, strtolower($class)) . '.json';
 
 		$this->_cfg = [];
 		$this->_properties = [];
@@ -92,7 +92,7 @@ class Base {
 			$this->from_flat_data($defaults);
 
 		}
-	
+
 		return $this;
 	}
 

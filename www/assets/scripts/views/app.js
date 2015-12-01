@@ -56,23 +56,18 @@ define([
                 .not(':button, :submit, :reset, :hidden')
                 .val('')
                 .removeAttr('checked')
-                .removeAttr('selected');
+                .removeAttr('selected')
+                .removeClass('active valid invalid');
 
-            /*
-            self.$confirmation.fadeIn(200,function () {
-                self.$confirmation.delay(2000).fadeOut(200);
-            });
-            */
+            self.$form.find('label')
+                .removeClass('active');
 
             window.setTimeout(function(){
-                $('body')
-                    .addClass('is-transmission-completed')
-                    .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
-                        function() {
-                            $('body')
-                                .removeClass('is-transmitting-transaction is-transmission-completed')
-                                .unbind('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend');
-                        });
+                $('body').addClass('is-transmission-completed');
+                self.$confirmation.one('webkitTransitionEnd transitionend msTransitionEnd oTransitionEnd', function() {
+                    $('body').removeClass('is-transmitting-transaction is-transmission-completed');
+                    self.$confirmation.unbind('webkitTransitionEnd transitionend msTransitionEnd oTransitionEnd');
+                });
             }, 2000);
 
             /*
@@ -81,7 +76,6 @@ define([
                 self.$user_form.html(rendered);
             }, 1000);
             */
-
         }
 
     });

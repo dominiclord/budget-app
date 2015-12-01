@@ -168,12 +168,11 @@ $app->group('/api', function () use ($db) {
             $data = $request->getParsedBody();
 
             if (empty($data['timestamp'])) {
-                $timestamp_date = new \DateTime( 'now', new \DateTimeZone('America/Montreal') );
-                $timestamp = $timestamp_date->getTimestamp();
+                $timestamp_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
             } else {
-                var_dump($data['timestamp']);
-                die();
+                $timestamp_date = new \DateTime($data['timestamp'], new \DateTimeZone('America/Montreal'));
             }
+            $timestamp = $timestamp_date->getTimestamp();
 
             $amount      = empty($data['amount']) ? '' : $data['amount'];
             $category    = empty($data['category']) ? '' : $data['category'];
@@ -220,26 +219,23 @@ $app->group('/api', function () use ($db) {
         /**
          * Modify a post
          * @param $db   Database connection
-         * @todo Add authentification
+         * @todo  Add authentification
+         * @todo  Change timestamp_modified only if data changes?
          */
-        $this->put('/transaction/{id}', function ($request, $response, $args) use ($db) {
+        $this->put('/transactions', function ($request, $response, $args) use ($db) {
             $data = $request->getParsedBody();
 
             try{
-                $transaction = $db->{'transactions'}[$args['id']];
+                $transaction = $db->{'transactions'}[$data['id']];
 
                 if ($transaction) {
-                    $timestamp_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
-                    $timestamp = $timestamp_date->getTimestamp();
-
                     foreach ($data as $key => $value) {
                         $transaction[$key] = $value;
                     }
 
-                    // If no status is set, data is being modified, and we need to update the modified_timestamp
-                    if (empty($data['status'])) {
-                        $transaction['timestamp_modified'] = $timestamp;
-                    }
+                    $timestamp_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
+                    $timestamp = $timestamp_date->getTimestamp();
+                    $transaction['timestamp_modified'] = $timestamp;
 
                     $result = $transaction->update();
 

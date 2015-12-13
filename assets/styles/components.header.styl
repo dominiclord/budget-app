@@ -1,0 +1,43 @@
+
+// Main header
+// ======================================================
+.c-header
+    background-color tomato
+    color white
+    left 0
+    position fixed
+    right 0
+    text-align center
+    top 0
+    z-index 90
+
+    @media (max-width toSmall)
+        &::after
+            bottom -6px
+            height 6px
+
+    @media (min-width fromSmall)
+        &::after
+            bottom -12px
+            height 12px
+
+    &::after
+        background linear-gradient(to bottom, rgba(43, 43, 43, 0.55) 0%, rgba(47, 47, 47, 0) 100%)
+        content ""
+        left 0
+        pointer-events none
+        position absolute
+        width 100%
+
+
+.c-header_heading
+    font-size 2rem
+    margin 0
+
+    @media (max-width toSmall)
+        height headerHeight
+        line-height headerHeight
+
+    @media (min-width fromSmall)
+        height rem(headerHeight)
+        line-height rem(headerHeight)

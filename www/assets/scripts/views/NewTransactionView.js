@@ -1,21 +1,26 @@
 /*global define*/
 define([
+    'mustache',
     'views/AbstractView',
-    'collections/transactions'
-], function (AbstractView, Transactions) {
+    'collections/transactions',
+    'text!../../templates/NewTransaction.mustache'
+], function (Mustache, AbstractView, Transactions, NewTransactionTemplate) {
     'use strict';
 
     var NewTransactionView = AbstractView.extend({
 
         // Instead of generating a new element, bind to the existing skeleton of
         // the App already present in the HTML.
-        el: '.js-newTransactionView',
+        //el: '#app',render
+
+        template: NewTransactionTemplate,
 
         events: {
             'submit .js-newTransactionForm': 'submitForm'
         },
 
         initialize: function () {
+            // @TODO FIX VIEW VS PAGE ISSUE WITH FORM
             this.$form = this.$('.js-newTransactionForm');
             this.$confirmation = this.$('.js-newTransactionMessage');
 
@@ -23,6 +28,26 @@ define([
             this.listenTo(this.Transaction, 'sync', this.manageSyncResponse);
             this.listenTo(this.Transaction, 'request', this.displayLoader);
             this.listenTo(this.Transaction, 'invalid', this.displayFormErrors);
+
+            this.render();
+        },
+
+        render: function () {
+            var templateData = {
+                headerTitle: 'New transaction'
+            };
+
+            console.log('lelelel');
+
+            this.renderView(this.el, this.template, templateData);
+
+            //$(this.el).html(Mustache.render(this.template, templateData));
+            //NewTransactionTemplate
+            //this.$el.toggleClass('completed', this.model.get('completed'));
+
+            //this.toggleVisible();
+            //this.$input = this.$('.edit');
+            //return this;
         },
 
         newAttributes: function () {
@@ -35,7 +60,9 @@ define([
             // Clean the form of errors
             // @todo
 
+
             var attributes = this.newAttributes();
+            console.log(attributes);
             this.Transaction.set(attributes);
             this.Transaction.save();
         },

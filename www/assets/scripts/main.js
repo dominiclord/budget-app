@@ -35,9 +35,9 @@ require.config({
 require([
     'backbone',
     'routers/router'
-], function (Backbone, Workspace) {
+], function (Backbone, AppRouter) {
     /*jshint nonew:false*/
     // Initialize routing and start Backbone.history()
-    new Workspace();
+    new AppRouter();
     Backbone.history.start();
 });

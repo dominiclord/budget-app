@@ -4,8 +4,15 @@
 
 // Functions
 // ======================================================
-rem(px, base = fontSize)
-    (px / base) * 1rem
+rem(value) {
+    u = unit(value);
+
+    if (u is 'px') {
+        return unit(value/fontSize, 'rem');
+    } else {
+        return unit(value, u);
+    }
+}
 
 // Mixins
 // ======================================================

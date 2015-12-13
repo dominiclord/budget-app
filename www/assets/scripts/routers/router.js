@@ -5,25 +5,29 @@ define([
 ], function (Common, NewTransactionView) {
     'use strict';
 
-    var BudgetRouter = Backbone.Router.extend({
+    var AppRouter = Backbone.Router.extend({
         routes: {
-            '' : 'home',
-            '*filter': 'setFilter'
+            //'*filter': 'setFilter'
+            '' : 'home'
         },
 
         home: function () {
-            return new NewTransactionView();
-        },
+            Common.currentView = 'NewTransactionView';
 
+            return new NewTransactionView();
+        }
+
+        /*
         setFilter: function (param) {
             // Set the current filter to be used
-            //Common.TodoFilter = param || '';
+            Common.TodoFilter = param || '';
 
             // Trigger a collection filter event, causing hiding/unhiding
             // of the Todo view items
-            //Todos.trigger('filter');
+            Todos.trigger('filter');
         }
+        */
     });
 
-    return BudgetRouter;
+    return AppRouter;
 });

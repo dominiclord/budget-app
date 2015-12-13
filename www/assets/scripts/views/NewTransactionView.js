@@ -1,16 +1,11 @@
 /*global define*/
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'collections/transactions',
-    'mustache',
-    'common'
-], function ($, _, Backbone, Transactions, Mustache, Common) {
+    'views/AbstractView',
+    'collections/transactions'
+], function (AbstractView, Transactions) {
     'use strict';
 
-    // Our overall **AppView** is the top-level piece of UI.
-    var AppView = Backbone.View.extend({
+    var NewTransactionView = AbstractView.extend({
 
         // Instead of generating a new element, bind to the existing skeleton of
         // the App already present in the HTML.
@@ -27,7 +22,7 @@ define([
             this.Transaction = Transactions.create();
             this.listenTo(this.Transaction, 'sync', this.manageSyncResponse);
             this.listenTo(this.Transaction, 'request', this.displayLoader);
-            //this.listenTo(this.Transaction, 'invalid', this.displayFormErrors);
+            this.listenTo(this.Transaction, 'invalid', this.displayFormErrors);
         },
 
         newAttributes: function () {
@@ -45,8 +40,30 @@ define([
             this.Transaction.save();
         },
 
+        /**
+         * Display a loader for transmitting
+         * @param  {Object}  model     A copy of the submitted model
+         * @param  {Object}  response  XHR response object
+         * @param  {Object}  options
+         */
         displayLoader: function (model, response, options) {
             $('body').addClass('is-transmitting-transaction');
+        },
+
+        /**
+         * Display errors in form on `invalid` event
+         * @param  {Object}  model  A copy of the submitted model
+         * @param  {Object}  error  A custom response object
+         */
+        displayFormErrors: function (model, error) {
+            console.log(model);
+            console.log(error);
+
+            var fields = error.fields;
+
+            for (var i = 0, len = fields.length; i < len; i++) {
+                this.$form.find('[name="' + fields[i] + '"]').addClass('invalid');
+            }
         },
 
         manageSyncResponse: function (e) {
@@ -80,5 +97,5 @@ define([
 
     });
 
-    return AppView;
+    return NewTransactionView;
 });

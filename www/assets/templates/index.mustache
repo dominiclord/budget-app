@@ -18,6 +18,18 @@
                     <form class="col s12 js-newTransactionForm" action="/submit" method="post">
                         <div class="row">
                             <div class="input-field col s12 m6">
+                                <p>
+                                    <input name="type" type="radio" id="input_type_expense" value="expense">
+                                    <label for="input_type_expense">Expense</label>
+                                </p>
+                                <p>
+                                    <input name="type" type="radio" id="input_type_income" value="income">
+                                    <label for="input_type_income">Income</label>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12 m6">
                                 <input id="input_amount" name="amount" type="number" step="any" class="validate">
                                 <label for="input_amount">Amount ($)</label>
                             </div>

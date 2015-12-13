@@ -1,14 +1,18 @@
 /*global define*/
 define([
-    'jquery',
-    'backbone',
-    'common'
-], function ($, Backbone, Common) {
+    'common',
+    'views/NewTransactionView'
+], function (Common, NewTransactionView) {
     'use strict';
 
     var BudgetRouter = Backbone.Router.extend({
         routes: {
+            '' : 'home',
             '*filter': 'setFilter'
+        },
+
+        home: function () {
+            return new NewTransactionView();
         },
 
         setFilter: function (param) {

@@ -1,10 +1,12 @@
-/*global define*/
-'use strict';
-
+/*global define, Waves*/
 define([
     'jquery',
+    'underscore',
+    'backbone',
     'materialize'
-], function ($, materialize) {
+], function ($, _, Backbone, materialize) {
+    'use strict';
+
     $.fn.serializeObject = function() {
         var o = {};
         var a = this.serializeArray();

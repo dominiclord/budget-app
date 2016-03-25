@@ -1,0 +1,28 @@
+{
+	"config_type": "taxonomy",
+	"module": "budget",
+
+	"properties":{
+		"id": {
+			"type": "id"
+		},
+		"name": {
+			"label": {
+				"en": "Category name"
+			}
+		}
+	},
+
+	"data": {
+		"category_item_type": "budget/object/transaction",
+		"category_item_count": 0
+	},
+
+	"sources": {
+		"default": {
+			"type": "database",
+			"table": "budget_transaction_categories"
+		}
+	},
+	"default_source": "default"
+}

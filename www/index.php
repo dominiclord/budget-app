@@ -5,8 +5,6 @@
  *
  * @author Benjamin Roch <roch.bene@gmail.com>
  * @author Dominic Lord <dlord@outlook.com>
- * @copyright 2015 dominiclord
- * @link http://github.com/dominiclord/budget-app
  */
 
 /**
@@ -14,23 +12,38 @@
  * autoload will make sure everything is available
  * @todo Move this.
  */
-use \Budget\Client;
-use \Budget\User;
-use \Budget\Transaction;
-use \Budget\Category;
-use \Utils\Config;
-use \Utils\Base;
+
+use \Charcoal\App\App;
+use \Charcoal\App\AppConfig;
+use \Charcoal\App\AppContainer;
 use \Utils\RandomStringGenerator;
 
-/**
- * That would be config matters
- * @todo Move that shit
- */
-$autoloader = require_once '../vendor/autoload.php';
-$autoloader->add('Budget\\', __DIR__.'/../src/');
-$autoloader->add('Utils\\', __DIR__.'/../src/');
+require_once '../vendor/autoload.php';
+require_once '../config/helper.php';
+require_once '../config/mustache-view.php';
 
-require_once('../mustache-view.php');
+/**
+ * Charcoal configuration
+ */
+$helper = new CharcoalHelper();
+
+$config = new AppConfig();
+$config->addFile(__DIR__.'/../config/config.php');
+$config->set('ROOT', dirname(__DIR__) . '/');
+
+// Create container and configure it (with charcoal-config)
+$container = new AppContainer([
+    'settings' => [
+        'displayErrorDetails' => true
+    ],
+    'config' => $config
+]);
+
+$charcoalapp = App::instance($container);
+
+if (!session_id()) {
+    session_start();
+}
 
 $container = new \Slim\Container([
     'settings' => [
@@ -44,20 +57,10 @@ $container = new \Slim\Container([
 
 $app = new \Slim\App($container);
 
-include '../config.php';
-// $db  = new NotORM($pdo);
-
-// DB
-$db = Base::notorm();
-
 /**
- * Simple, catchall routing. Specific routing is handled by Backbone
- *
- * @param $app  Application
- * @param $db   Database connection
- * @todo  Add authentification?
+ * Simple, catchall routing for prototyping.
  */
-$app->get('/[{foo}]', function ($request, $response, $args) {
+$app->get('/[{foo}]', function ($request, $response, $args) use ($helper) {
     return $this->view->render($response, '/index.html', $args);
 });
 
@@ -78,36 +81,32 @@ URL                          HTTP Method      Operation
  * @param $app  Application
  * @param $db   Database connection
  */
-$app->group('/api', function () use ($db) {
+$app->group('/api', function () use ($helper) {
 
     /**
      * API group v1
      * @param $app  Application
      * @param $db   Database connection
      */
-    $this->group('/v1', function () use ($db) {
+    $this->group('/v1', function () use ($helper) {
 
         /**
         * Fetch all transactions
         * @param $db   Database connection
         * @todo Add authentification
         */
-        $this->get('/transactions', function ($request, $response) use ($db) {
+        $this->get('/transactions', function ($request, $response) use ($helper) {
 
             try {
-                $transactions = $db
-                    ->transactions()
-                    ->order('timestamp DESC');
-
-                $_transactions = [];
-
-                foreach ($transactions as $transaction) {
-                    $_transaction = $transaction;
-                    $_transactions[] = $_transaction;
-                }
+                $transactions = $helper
+                    ->fetch_collection('budget/object/transaction')
+                    ->addFilter('active', true)
+                    ->addOrder('creation_date', 'ASC')
+                    ->load()
+                    ->objects();
 
                 $body = [
-                    'results' => $_transactions,
+                    'results' => $transactions,
                     'status' => 'OK'
                 ];
             } catch (PDOException $e) {
@@ -130,16 +129,20 @@ $app->group('/api', function () use ($db) {
          * @param $db   Database connection
          * @todo Add authentification
          */
-        $this->get('/transactions/{id}', function ($request, $response, $args) use ($db) {
+        $this->get('/transactions/{id}', function ($request, $response, $args) use ($helper) {
 
             try {
-                $row = $db->{'transactions'}[$args['id']];
+                $transaction = $helper
+                    ->obj('budget/object/transaction')
+                    ->loadFrom('id', $args['id'])
+                    ->load();
 
-                if ($row) {
+                if ($transaction->id()) {
                     $body = [
-                        'results' => $row,
+                        'results' => $transaction->data(),
                         'status' => 'OK'
                     ];
+
                 } else {
                     throw new PDOException('No transactions found.');
                 }
@@ -164,7 +167,7 @@ $app->group('/api', function () use ($db) {
          * @todo Everything
          * @todo Add authentification
          */
-        $this->post('/transactions', function ($request, $response, $args) use ($db) {
+        $this->post('/transactions', function ($request, $response, $args) use ($helper) {
             $data = $request->getParsedBody();
 
             if (empty($data['timestamp'])) {
@@ -223,7 +226,7 @@ $app->group('/api', function () use ($db) {
          * @todo  Add authentification
          * @todo  Change timestamp_modified only if data changes?
          */
-        $this->put('/transactions', function ($request, $response, $args) use ($db) {
+        $this->put('/transactions', function ($request, $response, $args) use ($helper) {
             $data = $request->getParsedBody();
 
             try{

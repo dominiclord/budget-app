@@ -1,0 +1,51 @@
+{
+	"properties":{
+		"id": {
+			"type": "id"
+		},
+		"category":{
+			"type":"object",
+			"obj_type":"budget/object/transaction-category",
+			"label":{
+				"en":"Category"
+			}
+		},
+		"creation_date":{
+			"type":"date-time",
+			"label":{
+				"en":"Creation date"
+			}
+		},
+		"modified_date":{
+			"type":"date-time",
+			"label":{
+				"en":"Modified date"
+			}
+		},
+		"amount":{
+			"type":"integer",
+			"label":{
+				"en":"Amount"
+			}
+		},
+		"description":{
+			"type":"text",
+			"label":{
+				"en":"Description"
+			}
+		},
+		"active":{
+			"type":"boolean"
+		}
+	},
+
+	"data": {},
+
+	"sources": {
+		"default": {
+			"type": "database",
+			"table": "budget_transactions"
+		}
+	},
+	"default_source": "default"
+}

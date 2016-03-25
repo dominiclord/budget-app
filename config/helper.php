@@ -105,6 +105,10 @@ class CharcoalHelper
         $obj = $factory->create($objType, [
             // 'logger'=>$this->logger
         ]);
+
+        // Make sure table exists
+        $obj->source()->createTable();
+
         return $obj;
     }
 

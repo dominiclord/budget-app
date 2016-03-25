@@ -41,6 +41,10 @@ $container = new AppContainer([
 
 $charcoalapp = App::instance($container);
 
+// $container->register(new \Charcoal\Model\ServiceProvider\ModelServiceProvider);
+// var_dump($container['model/factory']);
+
+
 if (!session_id()) {
     session_start();
 }
@@ -95,7 +99,7 @@ $app->group('/api', function () use ($helper) {
         * @param $db   Database connection
         * @todo Add authentification
         */
-        $this->get('/transactions', function ($request, $response) use ($helper) {
+        $this->get('/transactions', function ($request, $response) use ($helper) {;
 
             try {
                 $transactions = $helper
@@ -134,8 +138,7 @@ $app->group('/api', function () use ($helper) {
             try {
                 $transaction = $helper
                     ->obj('budget/object/transaction')
-                    ->loadFrom('id', $args['id'])
-                    ->load();
+                    ->loadFrom('id', $args['id']);
 
                 if ($transaction->id()) {
                     $body = [
@@ -171,11 +174,10 @@ $app->group('/api', function () use ($helper) {
             $data = $request->getParsedBody();
 
             if (empty($data['timestamp'])) {
-                $timestamp_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
+                $creation_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
             } else {
-                $timestamp_date = new \DateTime($data['timestamp'], new \DateTimeZone('America/Montreal'));
+                $creation_date = new \DateTime($data['timestamp'], new \DateTimeZone('America/Montreal'));
             }
-            $timestamp = $timestamp_date->getTimestamp();
 
             $amount      = empty($data['amount']) ? '' : $data['amount'];
             $category    = empty($data['category']) ? '' : $data['category'];
@@ -184,24 +186,28 @@ $app->group('/api', function () use ($helper) {
             $error = false;
 
             // Generate a unique id for the post
-            $generator = new RandomStringGenerator;
+            $generator = new \Utils\RandomStringGenerator;
             $token = $generator->generate(40);
 
             try {
                 if ($amount === '' || $category === '') {
                     throw new Exception('Empty amount or category');
                 } else {
-                    $transaction = [
-                        'id'          => $token,
-                        'timestamp'   => $timestamp,
-                        'category'    => $category,
-                        'description' => $description
-                    ];
 
-                    $result = $db->transactions->insert($transaction);
+                    $transaction = $helper
+                        ->obj('budget/object/transaction')
+                        ->setData([
+                            'id'            => $token,
+                            'creation_date' => $creation_date->format('Y-m-d H:i:s'),
+                            'modified_date' => $creation_date->format('Y-m-d H:i:s'),
+                            'category'      => $category,
+                            'description'   => $description
+                        ]);
+
+                    $transaction->save();
 
                     $body = [
-                        'results' => $result,
+                        'results' => $transaction->data(),
                         'status' => 'OK'
                     ];
                 }
@@ -226,28 +232,43 @@ $app->group('/api', function () use ($helper) {
          * @todo  Add authentification
          * @todo  Change timestamp_modified only if data changes?
          */
-        $this->put('/transactions', function ($request, $response, $args) use ($helper) {
+        $this->put('/transactions/{id}', function ($request, $response, $args) use ($helper) {
             $data = $request->getParsedBody();
+            // getParsedBody() doesn't seem to get parameters
+            // figure out how to to use update() properly
+            die();
 
             try{
-                $transaction = $db->{'transactions'}[$data['id']];
+                $transaction = $helper
+                    ->obj('budget/object/transaction')
+                    ->loadFrom('id', $args['id']);
 
-                if ($transaction) {
-                    foreach ($data as $key => $value) {
-                        $transaction[$key] = $value;
+                if ($transaction->id()) {
+
+                    // Be safe in regards to ID
+                    if (isset($data['id'])) {
+                        unset($data['id']);
                     }
 
-                    $timestamp_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
-                    $timestamp = $timestamp_date->getTimestamp();
-                    $transaction['timestamp_modified'] = $timestamp;
+                    // Transaction is being modified
+                    $modified_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
+                    $data['modified_date'] = $modified_date->format('Y-m-d H:i:s');
 
-                    $result = $transaction->update();
+                    $transaction->setData($data);
+                    $valid = $transaction->validate();
 
-                    $response->withStatus(200);
-                    $body = [
-                        'results' => $result,
-                        'status' => 'OK'
-                    ];
+                    if ($valid) {
+                        $transaction->update();
+
+                        $response->withStatus(200);
+                        $body = [
+                            'results' => $transaction->data(),
+                            'status' => 'OK'
+                        ];
+
+                    } else {
+                        throw new PDOException('Failed to update object: validation error(s).');
+                    }
                 } else {
                     throw new PDOException('No transactions found.');
                 }

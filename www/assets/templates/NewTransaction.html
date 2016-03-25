@@ -1,0 +1,91 @@
+<header class="c-header">
+    <h1 class="c-header_heading h2">{{headerTitle}}</h1>
+</header>
+<nav class="c-navigation">
+    <ul class="c-navigation_list">
+        <li class="c-navigation_item">
+            <a class="c-navigation_link" href="#">New view</a>
+        </li>
+        <li class="c-navigation_item">
+            <a class="c-navigation_link" href="#">List view</a>
+        </li>
+    </ul>
+</nav>
+<div class="row">
+    <form class="col s12" on-submit="post(event, {
+            type: type,
+            amount: amount,
+            category: category,
+            timestamp: timestamp,
+            description: description
+        })">
+        <div class="row">
+            <div class="input-field col s12 m6">
+                <p>
+                    <input name="{{type}}" type="radio" id="input_type_expense" value="expense" class="validate">
+                    <label for="input_type_expense">Expense</label>
+                </p>
+                <p>
+                    <input name="{{type}}" type="radio" id="input_type_income" value="income" class="validate">
+                    <label for="input_type_income">Income</label>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12 m6">
+                <input id="input_amount" value="{{amount}}" type="number" step="any" class="validate" required>
+                <label for="input_amount">Amount ($)</label>
+            </div>
+            <div class="input-field col s12 m6">
+                <input id="input_category" value="{{category}}" type="text" class="validate" required>
+                <label for="input_category">Category</label>
+            </div>
+            <div class="input-field col s12 m6">
+                <input value="{{timestamp}}" type="date" class="validate datepicker">
+            </div>
+            <div class="input-field col s12 m6">
+                <input id="input_description" value="{{description}}" type="text" class="validate" required>
+                <label for="input_description">Description</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12 m6">
+            </div>
+            <div class="input-field col s12 m6 right-align">
+                <button class="btn waves-effect waves-light" type="submit">Save
+                    <i class="material-icons right">done</i>
+                </button>
+            </div>
+        </div>
+        <div class="row c-loader js-newTransactionMessage">
+            <h3>Transaction saved</h3>
+        </div>
+    </form>
+</div>
+
+<script>
+component.exports = {
+    post: function (event, transaction) {
+        // Prevent the page from reloading
+        event.original.preventDefault();
+
+        // Add to the list of recent transactions
+        //this.push('transactions', transaction);
+
+        // Fire an event, so we can save the transaction to our server
+        this.fire('newTransaction', transaction);
+
+        // reset the form
+        document.activeElement.blur();
+        $('.valid').removeClass('valid');
+        console.log(document.activeElement);
+        this.set({
+            type: '',
+            amount: '',
+            category: '',
+            timestamp: '',
+            description: ''
+        });
+    }
+};
+</script>

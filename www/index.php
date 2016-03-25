@@ -32,11 +32,15 @@ $autoloader->add('Utils\\', __DIR__.'/../src/');
 
 require_once('../mustache-view.php');
 
-$container = new \Slim\Container;
-$container['view'] = function ($c) {
-    $view = new \Slim\Views\Mustache('assets/templates');
-    return $view;
-};
+$container = new \Slim\Container([
+    'settings' => [
+        'displayErrorDetails' => true,
+    ],
+    'view' => function ($c) {
+        $view = new \Slim\Views\PhpRenderer('assets/templates');
+        return $view;
+    }
+]);
 
 $app = new \Slim\App($container);
 
@@ -54,13 +58,7 @@ $db = Base::notorm();
  * @todo  Add authentification?
  */
 $app->get('/[{foo}]', function ($request, $response, $args) {
-    return $this->view->render($response, 'index', $args);
-    /*
-    // PHP Mustache method
-    $app->view()->setData([
-        'title' => 'Hello world.'
-    ]);
-     */
+    return $this->view->render($response, '/index.html', $args);
 });
 
 /*
@@ -120,9 +118,10 @@ $app->group('/api', function () use ($db) {
                 ];
             }
 
-            $response->write(json_encode($body));
-            $response->withHeader('Content-Type', 'application/json');
-            $response->withStatus(200);
+            $response->write(json_encode($body))
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+
             return $response;
         });
 
@@ -152,9 +151,10 @@ $app->group('/api', function () use ($db) {
                 ];
             }
 
-            $response->write(json_encode($body));
-            $response->withHeader('Content-Type', 'application/json');
-            $response->withStatus(200);
+            $response->write(json_encode($body))
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+
             return $response;
         });
 
@@ -210,14 +210,15 @@ $app->group('/api', function () use ($db) {
                 ];
             }
 
-            $response->write(json_encode($body));
-            $response->withHeader('Content-Type', 'application/json');
-            $response->withStatus(200);
+            $response->write(json_encode($body))
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+
             return $response;
         });
 
         /**
-         * Modify a post
+         * Modify a transaction
          * @param $db   Database connection
          * @todo  Add authentification
          * @todo  Change timestamp_modified only if data changes?
@@ -257,8 +258,10 @@ $app->group('/api', function () use ($db) {
                 ];
             }
 
-            $response->write(json_encode($body));
-            $response->withHeader('Content-Type', 'application/json');
+            $response->write(json_encode($body))
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+
             return $response;
         });
 

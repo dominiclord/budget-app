@@ -1,8 +1,7 @@
 <?php
 /**
- * Transaction Class
- * This is the class that represents transactions
- * Transactions can be positive or negative
+ * Category
+ * What type of transactions are you doing? This tells me about it
  *
  * @author Benjamin Roch <roch.bene@gmail.com>
  * @author Dominic Lord <dlord@outlook.com>
@@ -15,12 +14,10 @@ namespace Budget;
 
 use \Utils\Base;
 
-class Transaction extends Base {
-
-
+class TransactionCategory extends Base {
 
 	public static function table()
 	{
-		return 'transactions';
+		return 'transactioncategories';
 	}
 }

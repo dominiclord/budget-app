@@ -1,24 +1,27 @@
 /*global define*/
 define([
+    'jquery',
+    'underscore',
+    'backbone',
     'common',
     'mustache',
     'text!../../templates/partial.header.mustache'
-], function (Common, Mustache, PartialHeader) {
+], function ($, _, Backbone, Common, Mustache, PartialHeader) {
     'use strict';
 
     var AbstractView = Backbone.View.extend({
 
-        el: '#app',
-        model: null,
-        template: null,
-        applyTemplatePlugins: true,
-        partials: {
-            header: PartialHeader
-        },
+        //el: '#app',
+        //model: null,
+        //template: null,
+        //applyTemplatePlugins: true,
+        //partials: {
+        //    header: PartialHeader
+        //},
 
-        render: function() {
-            return this.renderView();
-        },
+        //render: function() {
+        //    return this.renderView();
+        //},
 
         /**
          * Abstracting default render to add support for partials

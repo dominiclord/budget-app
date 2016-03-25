@@ -1,10 +1,13 @@
 /*global define*/
 define([
+    'jquery',
+    'underscore',
+    'backbone',
     'mustache',
     'views/AbstractView',
     'collections/transactions',
     'text!../../templates/NewTransaction.mustache'
-], function (Mustache, AbstractView, Transactions, NewTransactionTemplate) {
+], function ($, _, Backbone, Mustache, AbstractView, Transactions, NewTransactionTemplate) {
     'use strict';
 
     var NewTransactionView = AbstractView.extend({
@@ -39,7 +42,11 @@ define([
 
             console.log('lelelel');
 
-            this.renderView(this.el, this.template, templateData);
+            //this.renderView(this.el, this.template, templateData);
+            console.log(this.$);
+            console.log(this.$el);
+            this.$el.html(Mustache.render(this.template, templateData));
+            return this;
 
             //$(this.el).html(Mustache.render(this.template, templateData));
             //NewTransactionTemplate

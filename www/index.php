@@ -44,7 +44,6 @@ $charcoalapp = App::instance($container);
 // $container->register(new \Charcoal\Model\ServiceProvider\ModelServiceProvider);
 // var_dump($container['model/factory']);
 
-
 if (!session_id()) {
     session_start();
 }
@@ -99,33 +98,41 @@ $app->group('/api', function () use ($helper) {
         * @param $db   Database connection
         * @todo Add authentification
         */
-        $this->get('/transactions', function ($request, $response) use ($helper) {;
+        $this->get('/transactions', function ($request, $response, $args) use ($helper) {
+            $status = 200;
+            $count = (isset($args['count']) && is_integer($args['count'])) ? $args['count'] : false;
 
             try {
                 $transactions = $helper
                     ->fetch_collection('budget/object/transaction')
                     ->addFilter('active', true)
-                    ->addOrder('creation_date', 'ASC')
+                    ->addOrder('creation_date', 'ASC');
+
+                if ($count) {
+                    $transactions = $transactions->setNumPerPage($count);
+                }
+
+                $transactions = $transactions
                     ->load()
                     ->objects();
 
-                $body = [
+                $data = [
+                    'message' => 'List of transactions',
                     'results' => $transactions,
-                    'status' => 'OK'
+                    'status' => 'ok'
                 ];
-            } catch (PDOException $e) {
-                $body = [
-                    'error_message' => $e->getMessage(),
+            } catch (Exception $e) {
+                $status = 404;
+                $data = [
+                    'message' => 'An error occured : ' . $e->getMessage(),
                     'results' => [],
-                    'status' => 'ERROR'
+                    'status' => 'error'
                 ];
             }
 
-            $response->write(json_encode($body))
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(200);
-
-            return $response;
+            return $response->withStatus($status)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write(json_encode($data));
         });
 
         /**
@@ -134,34 +141,34 @@ $app->group('/api', function () use ($helper) {
          * @todo Add authentification
          */
         $this->get('/transactions/{id}', function ($request, $response, $args) use ($helper) {
-
+            $status = 200;
             try {
                 $transaction = $helper
                     ->obj('budget/object/transaction')
                     ->loadFrom('id', $args['id']);
 
                 if ($transaction->id()) {
-                    $body = [
+                    $data = [
+                        'message' => 'Transaction found',
                         'results' => $transaction->data(),
-                        'status' => 'OK'
+                        'status' => 'ok'
                     ];
 
                 } else {
-                    throw new PDOException('No transactions found.');
+                    throw new Exception('No transactions found.');
                 }
-            } catch (PDOException $e) {
-                $body = [
-                    'error_message' => $e->getMessage(),
+            } catch (Exception $e) {
+                $status = 404;
+                $data = [
+                    'message' => 'An error occured : ' . $e->getMessage(),
                     'results' => [],
-                    'status' => 'ERROR'
+                    'status' => 'error'
                 ];
             }
 
-            $response->write(json_encode($body))
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(200);
-
-            return $response;
+            return $response->withStatus($status)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write(json_encode($data));
         });
 
         /**
@@ -171,17 +178,23 @@ $app->group('/api', function () use ($helper) {
          * @todo Add authentification
          */
         $this->post('/transactions', function ($request, $response, $args) use ($helper) {
-            $data = $request->getParsedBody();
+            $status = 200;
+            $body = $request->getParsedBody();
+            error_log(print_R($body, true));
 
-            if (empty($data['timestamp'])) {
+            if (empty($body['timestamp'])) {
                 $creation_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
             } else {
-                $creation_date = new \DateTime($data['timestamp'], new \DateTimeZone('America/Montreal'));
+                $creation_date = new \DateTime($body['timestamp'], new \DateTimeZone('America/Montreal'));
             }
 
-            $amount      = empty($data['amount']) ? '' : $data['amount'];
-            $category    = empty($data['category']) ? '' : $data['category'];
-            $description = empty($data['description']) ? '' : $data['description'];
+            // Is income : type 1
+            // Is expense : type 0
+            // Default is expense since most common
+            $type = empty($body['type']) ? 0 : $body['type'];
+            $amount = empty($body['amount']) ? '' : $body['amount'];
+            $category = empty($body['category']) ? '' : $body['category'];
+            $description = empty($body['description']) ? '' : $body['description'];
 
             $error = false;
 
@@ -190,14 +203,16 @@ $app->group('/api', function () use ($helper) {
             $token = $generator->generate(40);
 
             try {
-                if ($amount === '' || $category === '') {
-                    throw new Exception('Empty amount or category');
+                if ($amount === '' || $category === '' || $type === '') {
+                    throw new Exception('Empty amount, category or type');
                 } else {
 
                     $transaction = $helper
                         ->obj('budget/object/transaction')
                         ->setData([
-                            'id'            => $token,
+                            // 'id'            => $token,
+                            'type'          => $type,
+                            'amount'        => $amount,
                             'creation_date' => $creation_date->format('Y-m-d H:i:s'),
                             'modified_date' => $creation_date->format('Y-m-d H:i:s'),
                             'category'      => $category,
@@ -206,24 +221,24 @@ $app->group('/api', function () use ($helper) {
 
                     $transaction->save();
 
-                    $body = [
+                    $data = [
+                        'message' => 'New transaction created',
                         'results' => $transaction->data(),
-                        'status' => 'OK'
+                        'status' => 'ok'
                     ];
                 }
             } catch (Exception $e) {
-                $body = [
-                    'error_message' => $e->getMessage(),
+                $status = 404;
+                $data = [
+                    'message' => 'An error occured : ' . $e->getMessage(),
                     'results' => [],
-                    'status' => 'ERROR'
+                    'status' => 'error'
                 ];
             }
 
-            $response->write(json_encode($body))
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(200);
-
-            return $response;
+            return $response->withStatus($status)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write(json_encode($data));
         });
 
         /**
@@ -232,7 +247,12 @@ $app->group('/api', function () use ($helper) {
          * @todo  Add authentification
          * @todo  Change timestamp_modified only if data changes?
          */
-        $this->put('/transactions/{id}', function ($request, $response, $args) use ($helper) {
+        $this->patch('/transactions/{id}', function ($request, $response, $args) use ($helper) {
+            $body = $request->getParsedBody();
+            var_dump($body);
+            die();
+            /*
+            $status = 200;
             $data = $request->getParsedBody();
             // getParsedBody() doesn't seem to get parameters
             // figure out how to to use update() properly
@@ -260,33 +280,35 @@ $app->group('/api', function () use ($helper) {
                     if ($valid) {
                         $transaction->update();
 
-                        $response->withStatus(200);
                         $body = [
+                            'message' => 'Transaction updated',
                             'results' => $transaction->data(),
-                            'status' => 'OK'
+                            'status' => 'ok'
                         ];
 
                     } else {
-                        throw new PDOException('Failed to update object: validation error(s).');
+                        throw new Exception('Failed to update object: validation error(s).');
                     }
                 } else {
-                    throw new PDOException('No transactions found.');
+                    throw new Exception('No transactions found.');
                 }
 
-            } catch (PDOException $e) {
-                $response->withStatus(404);
+            } catch (Exception $e) {
+                $status = 404;
                 $body = [
-                    'error_message' => $e->getMessage(),
+                    'message' => 'An error occured : ' . $e->getMessage(),
                     'results' => [],
-                    'status' => 'ERROR'
+                    'status' => 'error'
                 ];
             }
 
-            $response->write(json_encode($body))
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(200);
-
-            return $response;
+            return $response->withStatus($status)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write(json_encode($data));
+            */
+            // return $response;
+            var_dump($request->getParsedBody());
+            return $response->write(var_export($request->getParsedBody(),true));
         });
 
     });

@@ -22,11 +22,11 @@
         <div class="row">
             <div class="input-field col s12 m6">
                 <p>
-                    <input name="{{type}}" type="radio" id="input_type_expense" value="expense" class="validate">
+                    <input name="{{type}}" type="radio" id="input_type_expense" value="0" class="validate" checked>
                     <label for="input_type_expense">Expense</label>
                 </p>
                 <p>
-                    <input name="{{type}}" type="radio" id="input_type_income" value="income" class="validate">
+                    <input name="{{type}}" type="radio" id="input_type_income" value="1" class="validate">
                     <label for="input_type_income">Income</label>
                 </p>
             </div>
@@ -73,18 +73,38 @@ component.exports = {
         //this.push('transactions', transaction);
 
         // Fire an event, so we can save the transaction to our server
-        this.fire('newTransaction', transaction);
+        // this.fire('newTransaction', transaction);
+        console.log( 'saving to server...', transaction );
+        var self = this;
+        var jqxhr = $.ajax({
+            method: 'POST',
+            url: '/api/v1/transactions',
+            data: transaction
+        })
+        .done(function(response) {
+            console.log(response.message);
 
-        // reset the form
-        document.activeElement.blur();
-        $('.valid').removeClass('valid');
-        console.log(document.activeElement);
-        this.set({
-            type: '',
-            amount: '',
-            category: '',
-            timestamp: '',
-            description: ''
+            if (response.status === 'ok') {
+                console.log(response.results);
+
+                // Reset the form
+                document.activeElement.blur();
+                $('.valid').removeClass('valid');
+
+                self.set({
+                    type: 0,
+                    amount: '',
+                    category: '',
+                    timestamp: '',
+                    description: ''
+                });
+            }
+        })
+        .fail(function() {
+            console.log('error');
+        })
+        .always(function() {
+            console.log('finished');
         });
     }
 };

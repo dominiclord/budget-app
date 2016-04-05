@@ -1,41 +1,96 @@
-var app;
+/**
+ * Create a new transaction (form and event management)
+ */
+var newTransactionController;
 
-Ractive.load('assets/templates/newTransaction.html')
-    .then( function ( NewTransactionView ) {
-        // NewTransactionView is a constructor that extends Ractive
-        // i.e. NewTransactionView = Ractive.extend({...})
-        app = new NewTransactionView({
-            el: 'main',
-            data: {
-                headerTitle: 'New transaction'
-            }
-        });
+Ractive.load('assets/templates/NewTransaction.html').then( function ( NewTransactionView ) {
+    // NewTransactionView is a constructor that extends Ractive
+    // i.e. NewTransactionView = Ractive.extend({...})
+    newTransactionController = new NewTransactionView({
+        el: '#newTransaction',
+        data: {
+            headerTitle: 'New transaction'
+        }
+    });
 
-        initApp();
+    initNewTransactionController();
+
+}).catch( function ( err ) {
+    // the setTimeout ensures the error doesn't get swallowed
+    // (this can be a problem with promises...)
+    setTimeout( function ( err ) {
+        throw err;
+    });
+});
+
+function initNewTransactionController() {
+    // newTransactionController.on( 'newTransaction', function ( transaction ) {
+    //     console.log( 'saving to server...', transaction );
+
+    //     var jqxhr = $.ajax({
+    //         method: 'POST',
+    //         url: '/api/v1/transactions',
+    //         data: transaction
+    //     })
+    //     .done(function(response) {
+    //         console.log(response.message);
+
+    //         if (response.status === 'ok') {
+    //             console.log(response.results);
+    //         }
+    //     })
+    //     .fail(function() {
+    //         console.log('error');
+    //     })
+    //     .always(function() {
+    //         console.log('finished');
+    //     });
+    // });
+}
+
+/**
+ * Display recent transactions list
+ */
+var recentTransactionsController;
+
+Ractive.load('assets/templates/RecentTransactions.html').then( function ( RecentTransactionsView ) {
+    // NewTransactionView is a constructor that extends Ractive
+    // i.e. NewTransactionView = Ractive.extend({...})
+    recentTransactionsController = new RecentTransactionsView({
+        el: '#recentTransactions'
+    });
+
+    initRecentTransactionsController();
+
+}).catch( function ( err ) {
+    setTimeout( function ( err ) {
+        throw err;
+    });
+});
+
+function initRecentTransactionsController() {
+    console.log( 'Loading recent transactions' );
+
+    var jqxhr = $.ajax({
+        method: 'GET',
+        url: '/api/v1/transactions',
+        data: {
+            count: 5
+        }
     })
-    .catch( function ( err ) {
-        // the setTimeout ensures the error doesn't get swallowed
-        // (this can be a problem with promises...)
-        setTimeout( function ( err ) {
-            throw err;
-        });
+    .done(function(response) {
+        console.log(response.message);
+
+        if (response.status === 'ok') {
+            recentTransactionsController.set('transactions', response.results);
+        }
+    })
+    .fail(function() {
+        console.log('error');
+    })
+    .always(function() {
+        console.log('finished');
     });
 
-function initApp() {
-    app.on( 'newTransaction', function ( transaction ) {
-        console.log( 'saving to server...', transaction );
-
-        var jqxhr = $.post( '/api/v1/transactions', transaction, function() {
-          alert( 'success' );
-        })
-          .done(function() {
-            alert( 'second success' );
-          })
-          .fail(function() {
-            alert( 'error' );
-          })
-          .always(function() {
-            alert( 'finished' );
-        });
-    });
+    // newTransactionController.on('newTransactionCreated', function (transaction) {});
 }

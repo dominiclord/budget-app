@@ -1,7 +1,14 @@
 {
 	"properties":{
 		"id": {
-			"type": "id"
+			"type": "id",
+			"mode": "uuid"
+		},
+		"type":{
+			"type":"boolean",
+			"label":{
+				"en":"Type"
+			}
 		},
 		"category":{
 			"type":"object",

@@ -36,8 +36,9 @@ class Transaction extends Content
 // Describable Properties
 // ==========================================================================
 
-    protected $category;
+    protected $type;
     protected $amount;
+    protected $category;
     protected $description;
     protected $creation_date;
     protected $modified_date;

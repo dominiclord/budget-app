@@ -100,19 +100,23 @@ $app->group('/api', function () use ($helper) {
         */
         $this->get('/transactions', function ($request, $response, $args) use ($helper) {
             $status = 200;
-            $count = (isset($args['count']) && is_integer($args['count'])) ? $args['count'] : false;
+
+            // Params are used for filtering and sorting transaction list
+            $params = $request->getQueryParams();
+            // Default : 20
+            $count = (isset($params['count']) && is_numeric($params['count'])) ? $params['count'] : 20;
+            // Default : 1
+            $page = (isset($params['page']) && is_numeric($params['page'])) ? $params['page'] : 1;
+            // Default : sorted from newest to oldest
+            $order = (isset($params['order'])) ? $params['order'] : 'DESC';
 
             try {
                 $transactions = $helper
                     ->fetch_collection('budget/object/transaction')
                     ->addFilter('active', true)
-                    ->addOrder('creation_date', 'ASC');
-
-                if ($count) {
-                    $transactions = $transactions->setNumPerPage($count);
-                }
-
-                $transactions = $transactions
+                    ->addOrder('creation_date', $order)
+                    ->setPage(1)
+                    ->setNumPerPage($count)
                     ->load()
                     ->objects();
 

@@ -57,7 +57,22 @@ Ractive.load('assets/templates/RecentTransactions.html').then( function ( Recent
     // NewTransactionView is a constructor that extends Ractive
     // i.e. NewTransactionView = Ractive.extend({...})
     recentTransactionsController = new RecentTransactionsView({
-        el: '#recentTransactions'
+        el: '#recentTransactions',
+        data:{
+            transactions: [],
+            sort: function ( array, column ) {
+                array = array.slice(); // clone, so we don't modify the underlying data
+
+                return array.sort( function ( a, b ) {
+                    return a[ column ] < b[ column ] ? 1 : -1;
+                });
+            },
+            sortColumn: 'creation_date'
+        }
+    });
+
+    recentTransactionsController.on( 'sort', function ( event, column ) {
+        this.set( 'sortColumn', column );
     });
 
     initRecentTransactionsController();
@@ -92,5 +107,7 @@ function initRecentTransactionsController() {
         console.log('finished');
     });
 
-    // newTransactionController.on('newTransactionCreated', function (transaction) {});
+    newTransactionController.on('newTransactionSaved', function (transaction) {
+        recentTransactionsController.push('transactions', transaction);
+    });
 }

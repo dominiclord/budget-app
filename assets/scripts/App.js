@@ -1,138 +1,125 @@
 /* jshint esnext: true */
-import globals from './utils/globals';
-import * as modules from './modules';
+import { $document, $window, $html, $body } from './utils/environment';
+import tap from './ractive/ractive-events-tap';
+import fade from './ractive/ractive-transitions-fade';
+import load from './ractive/ractive-load';
 
 class App {
 	constructor() {
-		this.modules = modules;
-		this.currentModules = [];
-	}
+        /**
+         * Create a new transaction (form and event management)
+         */
+        var newTransactionController;
 
-	/**
-	 * Execute global functions and settings
-	 * @return {Object}
-	 */
-	initGlobals() {
-		globals();
-		return this;
-	}
+        Ractive.load('assets/templates/NewTransaction.html').then( function ( NewTransactionView ) {
+            // NewTransactionView is a constructor that extends Ractive
+            // i.e. NewTransactionView = Ractive.extend({...})
+            newTransactionController = new NewTransactionView({
+                el: '#newTransaction',
+                data: {
+                    headerTitle: 'New transaction'
+                }
+            });
 
-	/**
-	 * Find modules and initialize them
-	 * @return  {Object}  this  Allows chaining
-	 */
-	initModules() {
-		// Elements with module
-		var moduleEls = document.querySelectorAll('[data-module]');
+            initNewTransactionController();
 
-		// Loop through elements
-		var i = 0;
-		var elsLen = moduleEls.length;
+        }).catch( function ( err ) {
+            // the setTimeout ensures the error doesn't get swallowed
+            // (this can be a problem with promises...)
+            setTimeout( function ( err ) {
+                throw err;
+            });
+        });
 
-		for (; i < elsLen; i++) {
+        function initNewTransactionController() {
+            // newTransactionController.on( 'newTransaction', function ( transaction ) {
+            //     console.log( 'saving to server...', transaction );
 
-			// Current element
-			let el = moduleEls[i];
+            //     var jqxhr = $.ajax({
+            //         method: 'POST',
+            //         url: '/api/v1/transactions',
+            //         data: transaction
+            //     })
+            //     .done(function(response) {
+            //         console.log(response.message);
 
-			// All data- attributes considered as options
-			let options = this.getElemData(el);
+            //         if (response.status === 'ok') {
+            //             console.log(response.results);
+            //         }
+            //     })
+            //     .fail(function() {
+            //         console.log('error');
+            //     })
+            //     .always(function() {
+            //         console.log('finished');
+            //     });
+            // });
+        }
 
-			// Add current DOM element and jQuery element
-			options.el = el;
-			options.$el = $(el);
+        /**
+         * Display recent transactions list
+         */
+        var recentTransactionsController;
 
-			// Module does exist at this point
-			let attr = options.module;
+        Ractive.load('assets/templates/RecentTransactions.html').then( function ( RecentTransactionsView ) {
+            // NewTransactionView is a constructor that extends Ractive
+            // i.e. NewTransactionView = Ractive.extend({...})
+            recentTransactionsController = new RecentTransactionsView({
+                el: '#recentTransactions',
+                data:{
+                    transactions: [],
+                    sort: function ( array, column ) {
+                        array = array.slice(); // clone, so we don't modify the underlying data
 
-			// Splitting modules found in the data-attribute
-			let moduleIdents = attr.replace(/\s/g, '').split(',');
+                        return array.sort( function ( a, b ) {
+                            return a[ column ] < b[ column ] ? 1 : -1;
+                        });
+                    },
+                    sortColumn: 'creation_date'
+                }
+            });
 
-			// Loop modules
-			let j = 0;
-			let modulesLen = moduleIdents.length;
+            recentTransactionsController.on( 'sort', function ( event, column ) {
+                this.set( 'sortColumn', column );
+            });
 
-			for (; j < modulesLen; j++) {
-				let moduleAttr = moduleIdents[j];
+            initRecentTransactionsController();
 
-				if (typeof this.modules[moduleAttr] === 'function') {
-					let module = new this.modules[moduleAttr](options);
-					this.currentModules.push(module);
-				}
-			}
-		}
+        }).catch( function ( err ) {
+            setTimeout( function ( err ) {
+                throw err;
+            });
+        });
 
-		return this;
-	}
+        function initRecentTransactionsController() {
+            console.log( 'Loading recent transactions' );
 
-	/**
-	 * Get element data attributes
-	 * @param   {DOMElement}  el
-	 * @return  {Array}       data
-	 */
-	getElemData(el) {
-		// All attributes
-		var attributes = el.attributes;
+            var jqxhr = $.ajax({
+                method: 'GET',
+                url: '/api/v1/transactions',
+                data: {
+                    count: 5
+                }
+            })
+            .done(function(response) {
+                console.log(response.message);
 
-		// Regex Pattern
-		var pattern = /^data\-(.+)$/;
+                if (response.status === 'ok') {
+                    recentTransactionsController.set('transactions', response.results);
+                }
+            })
+            .fail(function() {
+                console.log('error');
+            })
+            .always(function() {
+                console.log('finished');
+            });
 
-		// Output
-		var data = {};
-
-		for (let i in attributes) {
-			// Attributes name (ex: data-module)
-			let name = attributes[i].name;
-
-			// This happens.
-			if (!name) {
-				continue;
-			}
-
-			let match = name.match(pattern);
-			if (!match) {
-				continue;
-			}
-
-			// If this throws an error, you have some
-			// serious problems in your HTML.
-			data[match[1]] = el.getAttribute(name);
-		}
-
-		return data;
-	}
-
-	/**
-	 * Initialize app after document ready
-	 */
-	init() {
-		this.initGlobals().initModules();
+            newTransactionController.on('newTransactionSaved', function (transaction) {
+                recentTransactionsController.push('transactions', transaction);
+            });
+        }
 	}
 }
 
-$(function() {
-    var loaded = false;
-    var maxLoad = 3000;
-
-    // On load
-    // ==========================================================================
-    $(window).load(function() {
-        loaded = true;
-        load();
-    });
-
-    // Maximum load
-    // ==========================================================================
-    setTimeout(function() {
-        if(!loaded) {
-            load();
-        }
-    }, maxLoad);
-
-    // Load
-    // ==========================================================================
-    function load() {
-        $('html').removeClass('is-loading').addClass('is-loaded');
-		window.app = new App();
-		window.app.init();
-	}
-});
+new App();

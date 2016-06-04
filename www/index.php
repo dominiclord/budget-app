@@ -16,39 +16,51 @@
 use \Charcoal\App\App;
 use \Charcoal\App\AppConfig;
 use \Charcoal\App\AppContainer;
-use \Utils\RandomStringGenerator;
 
-require_once '../vendor/autoload.php';
-require_once '../config/helper.php';
-require_once '../config/mustache-view.php';
+use \Budget\Utils\RandomStringGenerator as RandomStringGenerator;
+use \Budget\Utils\CharcoalHelper;
 
-/**
- * Charcoal configuration
- */
-$helper = new CharcoalHelper();
+/** If we're not using PHP 5.6+, explicitly set the default character set. */
+if ( PHP_VERSION_ID < 50600 ) {
+    ini_set('default_charset', 'UTF-8');
+}
 
+/** For the time being, let's track and show all issues. */
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', true);
+
+/** Register The Composer Autoloader */
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+/** Import the application's settings */
 $config = new AppConfig();
-$config->addFile(__DIR__.'/../config/config.php');
-$config->set('ROOT', dirname(__DIR__) . '/');
+$config->addFile(dirname(__DIR__) . '/config/config.php');
+// $config->set('ROOT', dirname(__DIR__) . '/');
 
-// Create container and configure it (with charcoal-config)
+/** Build a DI container */
 $container = new AppContainer([
     'settings' => [
-        'displayErrorDetails' => true
+        'displayErrorDetails' => $config['dev_mode']
     ],
     'config' => $config
 ]);
 
-$charcoalapp = App::instance($container);
+$app = App::instance($container);
 
-// $container->register(new \Charcoal\Model\ServiceProvider\ModelServiceProvider);
-// var_dump($container['model/factory']);
+// Set up dependencies
+require __DIR__.'/../config/dependencies.php';
+// Register middleware
+require __DIR__.'/../config/middlewares.php';
 
+/** Start new or resume existing session */
 if (!session_id()) {
     session_start();
 }
 
-$container = new \Slim\Container([
+/** CharcoalHelper */
+$charcoalHelper = new CharcoalHelper($container);
+
+$appContainer = new \Slim\Container([
     'settings' => [
         'displayErrorDetails' => true,
     ],
@@ -58,12 +70,20 @@ $container = new \Slim\Container([
     }
 ]);
 
-$app = new \Slim\App($container);
+$budgetApp = new \Slim\App($appContainer);
+
+/**
+ * Build database tables
+ */
+$budgetApp->get('/build', function () use ($charcoalHelper) {
+    $charcoalHelper->collection('budget/object/transaction')->source()->createTable();
+    $charcoalHelper->collection('budget/object/transaction-category')->source()->createTable();
+});
 
 /**
  * Simple, catchall routing for prototyping.
  */
-$app->get('/[{foo}]', function ($request, $response, $args) use ($helper) {
+$budgetApp->get('/[{foo}]', function ($request, $response, $args) use ($charcoalHelper) {
     return $this->view->render($response, '/index.html', $args);
 });
 
@@ -81,24 +101,24 @@ URL                          HTTP Method      Operation
 
 /**
  * Main API group
- * @param $app  Application
+ * @param $budgetApp  Application
  * @param $db   Database connection
  */
-$app->group('/api', function () use ($helper) {
+$budgetApp->group('/api', function () use ($charcoalHelper) {
 
     /**
      * API group v1
-     * @param $app  Application
+     * @param $budgetApp  Application
      * @param $db   Database connection
      */
-    $this->group('/v1', function () use ($helper) {
+    $this->group('/v1', function () use ($charcoalHelper) {
 
         /**
         * Fetch all transactions
         * @param $db   Database connection
         * @todo Add authentification
         */
-        $this->get('/transactions', function ($request, $response, $args) use ($helper) {
+        $this->get('/transactions', function ($request, $response, $args) use ($charcoalHelper) {
             $status = 200;
 
             // Params are used for filtering and sorting transaction list
@@ -111,10 +131,10 @@ $app->group('/api', function () use ($helper) {
             $order = (isset($params['order'])) ? $params['order'] : 'DESC';
 
             try {
-                $transactions = $helper
-                    ->fetch_collection('budget/object/transaction')
+                $transactions = $charcoalHelper
+                    ->collection('budget/object/transaction')
                     ->addFilter('active', true)
-                    ->addOrder('creation_date', $order)
+                    ->addOrder('creationDate', $order)
                     ->setPage(1)
                     ->setNumPerPage($count)
                     ->load()
@@ -144,10 +164,10 @@ $app->group('/api', function () use ($helper) {
          * @param $db   Database connection
          * @todo Add authentification
          */
-        $this->get('/transactions/{id}', function ($request, $response, $args) use ($helper) {
+        $this->get('/transactions/{id}', function ($request, $response, $args) use ($charcoalHelper) {
             $status = 200;
             try {
-                $transaction = $helper
+                $transaction = $charcoalHelper
                     ->obj('budget/object/transaction')
                     ->loadFrom('id', $args['id']);
 
@@ -181,15 +201,15 @@ $app->group('/api', function () use ($helper) {
          * @todo Everything
          * @todo Add authentification
          */
-        $this->post('/transactions', function ($request, $response, $args) use ($helper) {
+        $this->post('/transactions', function ($request, $response, $args) use ($charcoalHelper) {
             $status = 200;
             $body = $request->getParsedBody();
             error_log(print_R($body, true));
 
             if (empty($body['timestamp'])) {
-                $creation_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
+                $creationDate = new \DateTime('now', new \DateTimeZone('America/Montreal'));
             } else {
-                $creation_date = new \DateTime($body['timestamp'], new \DateTimeZone('America/Montreal'));
+                $creationDate = new \DateTime($body['timestamp'], new \DateTimeZone('America/Montreal'));
             }
 
             // Is income : type 1
@@ -203,7 +223,7 @@ $app->group('/api', function () use ($helper) {
             $error = false;
 
             // Generate a unique id for the post
-            $generator = new \Utils\RandomStringGenerator;
+            $generator = new RandomStringGenerator;
             $token = $generator->generate(40);
 
             try {
@@ -211,23 +231,25 @@ $app->group('/api', function () use ($helper) {
                     throw new Exception('Empty amount, category or type');
                 } else {
 
-                    $transaction = $helper
+                    $transaction = $charcoalHelper
                         ->obj('budget/object/transaction')
                         ->setData([
-                            // 'id'            => $token,
-                            'type'          => $type,
-                            'amount'        => $amount,
-                            'creation_date' => $creation_date->format('Y-m-d H:i:s'),
-                            'modified_date' => $creation_date->format('Y-m-d H:i:s'),
-                            'category'      => $category,
-                            'description'   => $description
+                            // 'id' => $token,
+                            'type' => $type,
+                            'amount' => $amount,
+                            'creationDate' => $creationDate->format('Y-m-d H:i:s'),
+                            'modifiedDate' => $creationDate->format('Y-m-d H:i:s'),
+                            'category' => $category,
+                            'description' => $description
                         ]);
 
                     $transaction->save();
 
                     $data = [
                         'message' => 'New transaction created',
-                        'results' => $transaction->data(),
+                        'results' => [
+                            $transaction->data()
+                        ],
                         'status' => 'ok'
                     ];
                 }
@@ -251,7 +273,7 @@ $app->group('/api', function () use ($helper) {
          * @todo  Add authentification
          * @todo  Change timestamp_modified only if data changes?
          */
-        $this->patch('/transactions/{id}', function ($request, $response, $args) use ($helper) {
+        $this->patch('/transactions/{id}', function ($request, $response, $args) use ($charcoalHelper) {
             $body = $request->getParsedBody();
             var_dump($body);
             die();
@@ -263,7 +285,7 @@ $app->group('/api', function () use ($helper) {
             die();
 
             try{
-                $transaction = $helper
+                $transaction = $charcoalHelper
                     ->obj('budget/object/transaction')
                     ->loadFrom('id', $args['id']);
 
@@ -275,8 +297,8 @@ $app->group('/api', function () use ($helper) {
                     }
 
                     // Transaction is being modified
-                    $modified_date = new \DateTime('now', new \DateTimeZone('America/Montreal'));
-                    $data['modified_date'] = $modified_date->format('Y-m-d H:i:s');
+                    $modifiedDate = new \DateTime('now', new \DateTimeZone('America/Montreal'));
+                    $data['modifiedDate'] = $modifiedDate->format('Y-m-d H:i:s');
 
                     $transaction->setData($data);
                     $valid = $transaction->validate();
@@ -319,4 +341,4 @@ $app->group('/api', function () use ($helper) {
 
 });
 
-$app->run();
+$budgetApp->run();

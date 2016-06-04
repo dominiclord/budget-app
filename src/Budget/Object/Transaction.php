@@ -2,57 +2,70 @@
 
 namespace Budget\Object;
 
-use \InvalidArgumentException;
+use \DateTime;
 use \Exception;
+use \InvalidArgumentException;
 
-// Dependency from 'charcoal-core'
-use \Charcoal\Model\Collection;
+use \Pimple\Container;
 
-// Dependency from 'charcoal-base'
-use \Charcoal\Object\Content;
+// Dependencies from `charcoal-core`
+use \Charcoal\Model\AbstractModel;
 
 use \Budget\Object\TransactionCategory;
 
-/**
- *
- * ## Properties from {@see \Charcoal\Core\IndexableTrait}
- *
- * @var mixed $id
- *
- * ------------
- *
- * ## Properties from {@see \Charcoal\Object\Content}
- *
- * @var boolean        $active
- * @var integer        $position
- * @var DateTime       $created
- * @var integer|string $createdBy
- * @var DateTime       $lastModified
- * @var integer|string $lastModifiedBy
- */
-class Transaction extends Content
-{
+class Transaction extends AbstractModel {
 
-// Describable Properties
-// ==========================================================================
-
+    protected $active = true;
     protected $type;
     protected $amount;
     protected $category;
     protected $description;
-    protected $creation_date;
-    protected $modified_date;
+    protected $creationDate;
+    protected $modifiedDate;
 
-    public function category()
+    /** Getters */
+    public function active() { return $this->active; }
+    public function type() { return $this->type; }
+    public function amount() { return $this->amount; }
+    public function category() { return $this->category; }
+    public function description() { return $this->description; }
+    public function creationDate() { return $this->creationDate; }
+    public function modifiedDate() { return $this->modifiedDate; }
+
+    /** Setters */
+    public function setActive($active)
     {
-        return $this->category;
+        $this->active = $active;
+        return $this;
     }
-
-    public function setCategory($value)
+    public function setType($type)
     {
-        // $this->categories = array_map('intval', $this->parseMultiple($values));
-        $this->category = $value;
-
+        $this->type = $type;
+        return $this;
+    }
+    public function setAmount($amount)
+    {
+        $this->amount = $amount;
+        return $this;
+    }
+    public function setCategory($category)
+    {
+        $this->category = $category;
+        return $this;
+    }
+    public function setDescription($description)
+    {
+        $this->description = $description;
+        return $this;
+    }
+    public function setCreationDate($creationDate)
+    {
+        $this->creationDate = $creationDate;
+        return $this;
+    }
+    public function setModifiedDate($modifiedDate)
+    {
+        $this->modifiedDate = $modifiedDate;
         return $this;
     }
 }

@@ -1,20 +1,21 @@
 <?php
-namespace Budget\Traits;
+namespace Budget\Support\Traits;
 
-// From `charcoal-base`
+use \Exception;
+
+use Pimple\Container;
+
 use \Charcoal\Loader\CollectionLoader;
-use \Charcoal\Model\ModelFactory;
+use \Charcoal\Factory\FactoryInterface;
 
-/**
- * Helper
- * Basic helper to handle all charcoal methods
- * easily and the same way throughout the website
- *
- */
-trait HelperTrait
+trait ModelAwareTrait
 {
+	/**
+	 * ModelFactory
+	 *
+	 * @var FactoryInterface
+	 */
 	protected $modelFactory;
-	protected $loader;
 
 	/**
 	 * Protos to be kept in an associative array
@@ -22,14 +23,32 @@ trait HelperTrait
 	 */
 	protected $proto = [];
 
+	/**
+	 * Collection loader
+	 *
+	 * @var collectionloader
+	 */
+	protected $loader;
+
+	/**
+     * @return Self
+     */
+    public function setModelFactory(FactoryInterface $factory)
+    {
+        $this->modelFactory = $factory;
+        return $this;
+    }
+
     /**
-     * @return ModelFactory
+     * @return FactoryInterface
      */
     public function modelFactory()
     {
-        if ($this->modelFactory === null) {
-            $this->modelFactory = new ModelFactory();
-        }
+    	if (!$this->modelFactory) {
+    		throw new Exception(
+    		 	'ModelFactory wasn\'t set in '. get_called_class() .'. Probably missing a setDependencies()'
+            );
+    	}
         return $this->modelFactory;
     }
 
@@ -46,7 +65,6 @@ trait HelperTrait
     	if (isset($this->proto[$objType])) {
     		return $this->proto[$objType];
     	}
-
     	$this->proto[$objType] = $this->obj($objType);
 
         return $this->proto[$objType];
@@ -61,9 +79,7 @@ trait HelperTrait
     public function obj($objType)
     {
     	$factory = $this->modelFactory();
-    	$obj = $factory->create($objType, [
-            'logger'=>$this->logger
-        ]);
+    	$obj = $factory->create($objType);
     	return $obj;
     }
 
@@ -75,19 +91,11 @@ trait HelperTrait
     {
         $obj = $this->obj($objType);
         $loader = new CollectionLoader([
-            'logger'=>$this->logger
+            'logger'=>$this->logger,
+            'factory' => $this->modelFactory()
         ]);
         $loader->setModel($obj);
         return $loader;
-    }
-
-    /**
-     * Used for copyrights
-     * @return string
-     */
-    public function currentYear()
-    {
-        return date('Y');
     }
 
 }

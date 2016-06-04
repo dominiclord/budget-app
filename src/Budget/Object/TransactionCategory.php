@@ -2,8 +2,14 @@
 
 namespace Budget\Object;
 
-use \InvalidArgumentException;
+use \DateTime;
 use \Exception;
+use \InvalidArgumentException;
+
+use \Pimple\Container;
+
+// Dependencies from `charcoal-core`
+use \Charcoal\Model\AbstractModel;
 
 // Dependencies from 'charcoal-base'
 use \Charcoal\Object\CategoryInterface;
@@ -20,31 +26,11 @@ use \Budget\Object\Transaction;
  * @var string     $categoryItemType
  * @var integer    $categoryItemCount
  * @var Collection $categoryItems
- *
- * ------------
- *
- * ## Properties from {@see \Charcoal\Core\IndexableTrait}
- *
- * @var mixed $id
- *
- * ------------
- *
- * ## Properties from {@see \Charcoal\Object\Content}
- *
- * @var boolean        $active
- * @var integer        $position
- * @var DateTime       $created
- * @var integer|string $createdBy
- * @var DateTime       $lastModified
- * @var integer|string $lastModifiedBy
  */
-class TransactionCategory extends Content implements
+class TransactionCategory extends AbstractModel implements
     CategoryInterface
 {
     use CategoryTrait;
-
-// From CategoryTrait
-// ==========================================================================
 
     /**
      * Determine how many items in this category.
@@ -65,7 +51,7 @@ class TransactionCategory extends Content implements
     public function loadCategoryItems()
     {
         $factory = $this->factory();
-        $item    = $factory->create(Transaction::class);
+        $item = $factory->create(Transaction::class);
 
         $loader = $this->createCollectionLoader();
         $loader->setModel($item);

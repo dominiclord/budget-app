@@ -4,6 +4,9 @@
 			"type": "id",
 			"mode": "uuid"
 		},
+		"active": {
+		  "type": "boolean"
+		},
 		"type":{
 			"type":"boolean",
 			"label":{
@@ -17,13 +20,13 @@
 				"en":"Category"
 			}
 		},
-		"creation_date":{
+		"creationDate":{
 			"type":"date-time",
 			"label":{
 				"en":"Creation date"
 			}
 		},
-		"modified_date":{
+		"modifiedDate":{
 			"type":"date-time",
 			"label":{
 				"en":"Modified date"

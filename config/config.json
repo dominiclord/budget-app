@@ -1,7 +1,6 @@
 {
-    "URL":"http://budget-app.dev",
+    "URL":"/",
     "dev_mode": true,
-
     "cache": {
         "active": false
     },
@@ -11,6 +10,7 @@
     },
     "databases": {
         "local": {
+            "hostname": "127.0.0.1",
             "username": "root",
             "password": "root",
             "database": "budget"
@@ -29,9 +29,9 @@
     "translator":{
         "locales": {
             "languages": {
-                "fr": {}
+                "en": {}
             },
-            "default_language": "fr"
+            "default_language": "en"
         }
     },
     "view": {
@@ -39,15 +39,13 @@
             "templates/",
             "vendor/locomotivemtl/charcoal-app/templates/"
         ],
-        "engines": {
-            "mustache": {}
-        },
-        "default_engine": "mustache",
-        "default_controller":"\\Budget\\Template\\Budget"
+        "default_controller":"budget/template/generic",
+        "default_engine": "mustache"
     },
     "metadata":{
         "paths":[
             "vendor/locomotivemtl/charcoal-app/metadata/",
+            "vendor/locomotivemtl/charcoal-base/metadata/",
             "vendor/locomotivemtl/charcoal-property/metadata/",
             "metadata/"
         ]

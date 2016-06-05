@@ -11,13 +11,21 @@ use \Pimple\Container;
 // Dependencies from `charcoal-core`
 use \Charcoal\Model\AbstractModel;
 
+// Model Aware
+use Budget\Support\Traits\ModelAwareTrait;
+use Budget\Support\Interfaces\ModelAwareInterface;
+
 use \Budget\Support\Traits\PublicDataTrait;
 use \Budget\Support\Interfaces\PublicDataInterface;
 
 class Transaction extends AbstractModel implements
+    ModelAwareInterface,
     PublicDataInterface
 {
-    use PublicDataTrait;
+    use ModelAwareTrait;
+    use PublicDataTrait {
+        publicData as publicDataFromTrait;
+    }
 
     protected $active = true;
     protected $type;
@@ -27,11 +35,45 @@ class Transaction extends AbstractModel implements
     protected $creationDate;
     protected $modifiedDate;
 
+    private $categoryObject;
+
+    /**
+     * @param Container  $container  The dependencies.
+     */
+    public function setDependencies(Container $container)
+    {
+        $this->setModelFactory($container['model/factory']);
+    }
+
+    public function publicData(array $aliases = null)
+    {
+        $aliases = [
+            'category' => $this->categoryAsObject()
+        ];
+        return $this->publicDataFromTrait($aliases);
+    }
+
+    /**
+     * Return transaction category as object
+     * @return TransactionCategory
+     */
+    public function categoryAsObject()
+    {
+        if (!$this->categoryObject) {
+            $categoryObject = $this
+                ->obj('budget/object/transaction-category')
+                ->load($this->category());
+
+            $this->categoryObject = $categoryObject;
+        }
+        return $this->categoryObject;
+    }
+
     /** Getters */
+    public function category() { return $this->category; }
     public function active() { return $this->active; }
     public function type() { return $this->type; }
     public function amount() { return $this->amount; }
-    public function category() { return $this->category; }
     public function description() { return $this->description; }
     public function creationDate() { return $this->creationDate; }
     public function modifiedDate() { return $this->modifiedDate; }

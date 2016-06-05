@@ -7,6 +7,6 @@ namespace Budget\Support\Interfaces;
  */
 interface PublicDataInterface
 {
-    public function publicData();
+    public function publicData(array $aliases = null);
     public function publicProperties();
 }

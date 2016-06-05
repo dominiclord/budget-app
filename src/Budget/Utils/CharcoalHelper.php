@@ -13,14 +13,14 @@ use \Psr\Log\LoggerAwareInterface;
 use \Psr\Log\LoggerAwareTrait;
 
 // From `charcoal-app`
-use \Charcoal\App\Template\AbstractTemplate;
+// use \Charcoal\App\Template\AbstractTemplate;
 use \Charcoal\App\AppConfig;
 
 // Module `charcoal-config` dependencies
 use \Charcoal\Config\AbstractEntity;
 
 // From `charcoal-core`
-use \Charcoal\Model\ModelLoader;
+// use \Charcoal\Model\ModelLoader;
 
 // Model Aware
 use Budget\Support\Traits\ModelAwareTrait;
@@ -35,21 +35,20 @@ use Budget\Support\Interfaces\ConfigAwareInterface;
  * Basic helper to handle all Charcoal interactions
  */
 class CharcoalHelper extends AbstractEntity implements
+    ConfigAwareInterface,
     LoggerAwareInterface,
-    ModelAwareInterface,
-    ConfigAwareInterface
+    ModelAwareInterface
 {
     use ConfigAwareTrait;
     use LoggerAwareTrait;
     use ModelAwareTrait;
 
     /**
-     * @param array|\ArrayAccess $data The dependencies (app and logger).
+     * @param Container  $container  The dependencies.
      */
     public function __construct(Container $container)
     {
         $this->setDependencies($container);
-        // $this->setLogger($logger);
     }
 
     /**

@@ -16,15 +16,28 @@ trait PublicDataTrait
     /**
      * Return the object data as an array
      * Filters returned properties according to $this->publicProperties
+     * Allows replacing data with an alias value (ex.: category name instead of category id)
+     *
+     * @param  array  $aliases  Array of aliases and their values to replace default public data
      * @return array
      */
-    public function publicData()
+    public function publicData(array $aliases = null)
     {
         $properties = array_keys($this->metadata()->properties());
         $publicProperties = $this->publicProperties();
         $filteredProperties = array_merge(array_diff($properties, $publicProperties), array_diff($publicProperties, $properties));
 
-        return $this->data($filteredProperties);
+        $data = $this->data($filteredProperties);
+
+        if ($aliases !== null) {
+            foreach($aliases as $ident => $value) {
+                if (!empty($data[$ident])) {
+                    $data[$ident] = $value;
+                }
+            }
+        }
+
+        return $data;
     }
 
     /**

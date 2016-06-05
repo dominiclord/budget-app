@@ -30,6 +30,21 @@ class Transaction extends AbstractModel {
     public function creationDate() { return $this->creationDate; }
     public function modifiedDate() { return $this->modifiedDate; }
 
+    /**
+     * Hooks into data() method
+     * Allows us to filter returned properties according to public_properties in metadata
+     *
+     * @return array
+     */
+    public function publicData()
+    {
+        $properties = array_keys($this->metadata()->properties());
+        $publicProperties = (isset($this->metadata()->public_properties)) ? $this->metadata()->public_properties : $properties;
+        $filteredProperties = array_merge(array_diff($properties, $publicProperties), array_diff($publicProperties, $properties));
+        $data = $this->data($filteredProperties);
+        return $data;
+    }
+
     /** Setters */
     public function setActive($active)
     {

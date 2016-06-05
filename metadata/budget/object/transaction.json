@@ -31,11 +31,17 @@
         "description":{
             "type":"text",
             "label":"Description"
-        },
-        "active":{
-            "type":"boolean"
         }
     },
+
+    "public_properties":[
+        "id",
+        "type",
+        "category",
+        "creationDate",
+        "amount",
+        "description"
+    ],
 
     "data": {},
 

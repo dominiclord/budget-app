@@ -129,7 +129,7 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
                     ->setPage(1)
                     ->setNumPerPage($count)
                     ->load()
-                    ->objects();
+                    ->objectsPublic();
 
                 $data = [
                     'message' => 'List of transactions',
@@ -160,12 +160,14 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
             try {
                 $transaction = $charcoalHelper
                     ->obj('budget/object/transaction')
-                    ->loadFrom('id', $args['id']);
+                    ->load($args['id']);
 
                 if ($transaction->id()) {
                     $data = [
                         'message' => 'Transaction found',
-                        'results' => $transaction->data(),
+                        'results' => [
+                            $transaction->publicData()
+                        ],
                         'status' => 'ok'
                     ];
 
@@ -258,7 +260,7 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
                     $data = [
                         'message' => 'New transaction created',
                         'results' => [
-                            $transaction->data()
+                            $transaction->publicData()
                         ],
                         'status' => 'ok'
                     ];

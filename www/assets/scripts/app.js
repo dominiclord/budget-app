@@ -29,11 +29,11 @@ var App = function () {
         _classCallCheck(this, App);
 
         /* Load template parts */
-        Ractive.load('assets/templates/NewTransaction.html').then(function (NewTransactionView) {
+        (0, _ractiveLoad2.default)('assets/templates/NewTransaction.html').then(function (NewTransactionView) {
             _this2.newTransactionController = _this2.initNewTransactionController(NewTransactionView);
         }).catch(this.ractiveLoadCatch);
 
-        Ractive.load('assets/templates/RecentTransactions.html').then(function (RecentTransactionsView) {
+        (0, _ractiveLoad2.default)('assets/templates/RecentTransactions.html').then(function (RecentTransactionsView) {
             _this2.recentTransactionsController = _this2.initRecentTransactionsController(RecentTransactionsView);
         }).catch(this.ractiveLoadCatch);
     }
@@ -70,8 +70,6 @@ var App = function () {
                  * @param  {array}  options  Array of options
                  */
                 oninit: function oninit(options) {
-                    console.log('htmmm');
-
                     /* Proxy events */
                     this.on({
                         /**
@@ -108,11 +106,7 @@ var App = function () {
                                 url: '/api/v1/transactions',
                                 data: transactionModel
                             }).done(function (response) {
-                                console.log(response.message);
-
                                 if (response.status === 'ok') {
-                                    console.log(response.results);
-
                                     // Push the new transaction to the recent transaction list
                                     var transaction = response.results.shift();
                                     if (typeof transaction !== 'undefined') {
@@ -132,9 +126,9 @@ var App = function () {
                                     });
                                 }
                             }).fail(function () {
-                                console.log('error');
+                                console.log('Error');
                             }).always(function () {
-                                console.log('finished');
+                                console.log('Finished');
                             });
                         }
                     });
@@ -193,9 +187,9 @@ var App = function () {
                             _this4.set('transactions', response.results);
                         }
                     }).fail(function () {
-                        console.log('error');
+                        console.log('Error');
                     }).always(function () {
-                        console.log('finished');
+                        console.log('Finished');
                     });
 
                     /* Proxy events */

@@ -8,11 +8,11 @@ class App {
 	constructor() {
 
         /* Load template parts */
-        Ractive.load('assets/templates/NewTransaction.html').then((NewTransactionView) => {
+        load('assets/templates/NewTransaction.html').then((NewTransactionView) => {
             this.newTransactionController = this.initNewTransactionController(NewTransactionView);
         }).catch(this.ractiveLoadCatch);
 
-        Ractive.load('assets/templates/RecentTransactions.html').then((RecentTransactionsView) => {
+        load('assets/templates/RecentTransactions.html').then((RecentTransactionsView) => {
             this.recentTransactionsController = this.initRecentTransactionsController(RecentTransactionsView);
         }).catch(this.ractiveLoadCatch);
 	}
@@ -45,8 +45,6 @@ class App {
              * @param  {array}  options  Array of options
              */
             oninit: function(options) {
-                console.log ('htmmm');
-
                 /* Proxy events */
                 this.on({
                     /**
@@ -82,11 +80,7 @@ class App {
                             data: transactionModel
                         })
                         .done((response) => {
-                            console.log(response.message);
-
                             if (response.status === 'ok') {
-                                console.log(response.results);
-
                                 // Push the new transaction to the recent transaction list
                                 let transaction = response.results.shift();
                                 if (typeof transaction !== 'undefined') {
@@ -107,10 +101,10 @@ class App {
                             }
                         })
                         .fail(() => {
-                            console.log('error');
+                            console.log('Error');
                         })
                         .always(() => {
-                            console.log('finished');
+                            console.log('Finished');
                         });
                     }
                 });
@@ -166,10 +160,10 @@ class App {
                     }
                 })
                 .fail(() => {
-                    console.log('error');
+                    console.log('Error');
                 })
                 .always(() => {
-                    console.log('finished');
+                    console.log('Finished');
                 });
 
                 /* Proxy events */

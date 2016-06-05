@@ -11,7 +11,13 @@ use \Pimple\Container;
 // Dependencies from `charcoal-core`
 use \Charcoal\Model\AbstractModel;
 
-class Transaction extends AbstractModel {
+use \Budget\Support\Traits\PublicDataTrait;
+use \Budget\Support\Interfaces\PublicDataInterface;
+
+class Transaction extends AbstractModel implements
+    PublicDataInterface
+{
+    use PublicDataTrait;
 
     protected $active = true;
     protected $type;
@@ -21,8 +27,6 @@ class Transaction extends AbstractModel {
     protected $creationDate;
     protected $modifiedDate;
 
-    static public $publicProperties = [];
-
     /** Getters */
     public function active() { return $this->active; }
     public function type() { return $this->type; }
@@ -31,30 +35,6 @@ class Transaction extends AbstractModel {
     public function description() { return $this->description; }
     public function creationDate() { return $this->creationDate; }
     public function modifiedDate() { return $this->modifiedDate; }
-
-    /**
-     * Hooks into data() method
-     * Allows us to filter returned properties according to public_properties in metadata
-     *
-     * @return array
-     */
-    public function publicData()
-    {
-        $properties = array_keys($this->metadata()->properties());
-        $publicProperties = $this->publicProperties();
-        $filteredProperties = array_merge(array_diff($properties, $publicProperties), array_diff($publicProperties, $properties));
-        $data = $this->data($filteredProperties);
-        return $data;
-    }
-
-    public function publicProperties()
-    {
-        if (!self::$publicProperties) {
-            $publicProperties = (isset($this->metadata()->public_properties)) ? $this->metadata()->public_properties : $this->metadata()->properties();
-            self::$publicProperties = $publicProperties;
-        }
-        return self::$publicProperties;
-    }
 
     /** Setters */
     public function setActive($active)

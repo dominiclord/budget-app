@@ -72,17 +72,13 @@ $appContainer = new \Slim\Container([
 
 $budgetApp = new \Slim\App($appContainer);
 
-/**
- * Build database tables
- */
+/** Build database tables */
 $budgetApp->get('/build', function () use ($charcoalHelper) {
     $charcoalHelper->collection('budget/object/transaction')->source()->createTable();
     $charcoalHelper->collection('budget/object/transaction-category')->source()->createTable();
 });
 
-/**
- * Simple, catchall routing for prototyping.
- */
+/** Simple, catchall routing for prototyping. */
 $budgetApp->get('/[{foo}]', function ($request, $response, $args) use ($charcoalHelper) {
     return $this->view->render($response, '/index.html', $args);
 });
@@ -101,23 +97,18 @@ URL                          HTTP Method      Operation
 
 /**
  * Main API group
- * @param $budgetApp  Application
- * @param $db   Database connection
  */
 $budgetApp->group('/api', function () use ($charcoalHelper) {
 
     /**
      * API group v1
-     * @param $budgetApp  Application
-     * @param $db   Database connection
      */
     $this->group('/v1', function () use ($charcoalHelper) {
 
         /**
-        * Fetch all transactions
-        * @param $db   Database connection
-        * @todo Add authentification
-        */
+         * Fetch all transactions
+         * @todo Add authentification
+         */
         $this->get('/transactions', function ($request, $response, $args) use ($charcoalHelper) {
             $status = 200;
 
@@ -214,7 +205,7 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
 
             // Is income : type 1
             // Is expense : type 0
-            // Default is expense since most common
+            // Default is expense since it's the most common transaction
             $type = empty($body['type']) ? 0 : $body['type'];
             $amount = empty($body['amount']) ? '' : $body['amount'];
             $category = empty($body['category']) ? '' : $body['category'];
@@ -231,6 +222,25 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
                     throw new Exception('Empty amount, category or type');
                 } else {
 
+                    // Here we test for existing category
+                    // $category could be of two formats
+                    // - string (create a new category)
+                    // - UUID (use existing category)
+                    $transactionCategory = $charcoalHelper
+                        ->obj('budget/object/transaction-category')
+                        ->load($category);
+
+                    if (!$transactionCategory->id()) {
+                        $transactionCategory = $charcoalHelper
+                            ->obj('budget/object/transaction-category')
+                            ->setData([
+                                'name' => $category
+                            ]);
+
+                        $transactionCategory->save();
+                    }
+
+                    // Create a new transaction that we save and then return in our response
                     $transaction = $charcoalHelper
                         ->obj('budget/object/transaction')
                         ->setData([
@@ -239,7 +249,7 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
                             'amount' => $amount,
                             'creationDate' => $creationDate->format('Y-m-d H:i:s'),
                             'modifiedDate' => $creationDate->format('Y-m-d H:i:s'),
-                            'category' => $category,
+                            'category' => $transactionCategory->id(),
                             'description' => $description
                         ]);
 

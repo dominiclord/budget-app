@@ -1,61 +1,49 @@
 {
-	"properties":{
-		"id": {
-			"type": "id",
-			"mode": "uuid"
-		},
-		"active": {
-		  "type": "boolean"
-		},
-		"type":{
-			"type":"boolean",
-			"label":{
-				"en":"Type"
-			}
-		},
-		"category":{
-			"type":"object",
-			"obj_type":"budget/object/transaction-category",
-			"label":{
-				"en":"Category"
-			}
-		},
-		"creationDate":{
-			"type":"date-time",
-			"label":{
-				"en":"Creation date"
-			}
-		},
-		"modifiedDate":{
-			"type":"date-time",
-			"label":{
-				"en":"Modified date"
-			}
-		},
-		"amount":{
-			"type":"integer",
-			"label":{
-				"en":"Amount"
-			}
-		},
-		"description":{
-			"type":"text",
-			"label":{
-				"en":"Description"
-			}
-		},
-		"active":{
-			"type":"boolean"
-		}
-	},
+    "properties":{
+        "id": {
+            "type": "id",
+            "mode": "uuid"
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "type":{
+            "type":"boolean",
+            "label":"Type"
+        },
+        "category":{
+            "type":"object",
+            "obj_type":"budget/object/transaction-category",
+            "label":"Category"
+        },
+        "creationDate":{
+            "type":"date-time",
+            "label":"Creation date"
+        },
+        "modifiedDate":{
+            "type":"date-time",
+            "label":"Modified date"
+        },
+        "amount":{
+            "type":"integer",
+            "label":"Amount"
+        },
+        "description":{
+            "type":"text",
+            "label":"Description"
+        },
+        "active":{
+            "type":"boolean"
+        }
+    },
 
-	"data": {},
+    "data": {},
 
-	"sources": {
-		"default": {
-			"type": "database",
-			"table": "budget_transactions"
-		}
-	},
-	"default_source": "default"
+    "sources": {
+        "default": {
+            "type": "database",
+            "table": "budget_transactions"
+        }
+    },
+    "default_source": "default"
 }

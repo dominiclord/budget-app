@@ -11,8 +11,6 @@ use \Pimple\Container;
 // Dependencies from `charcoal-core`
 use \Charcoal\Model\AbstractModel;
 
-use \Budget\Object\TransactionCategory;
-
 class Transaction extends AbstractModel {
 
     protected $active = true;

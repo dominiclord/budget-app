@@ -3,9 +3,10 @@
 	"module": "budget",
 
 	"properties":{
-		"id": {
-			"type": "id"
-		},
+        "id": {
+            "type": "id",
+            "mode": "uuid"
+        },
 		"name": {
 			"label": {
 				"en": "Category name"

@@ -21,6 +21,8 @@ class Transaction extends AbstractModel {
     protected $creationDate;
     protected $modifiedDate;
 
+    static public $publicProperties = [];
+
     /** Getters */
     public function active() { return $this->active; }
     public function type() { return $this->type; }
@@ -39,10 +41,19 @@ class Transaction extends AbstractModel {
     public function publicData()
     {
         $properties = array_keys($this->metadata()->properties());
-        $publicProperties = (isset($this->metadata()->public_properties)) ? $this->metadata()->public_properties : $properties;
+        $publicProperties = $this->publicProperties();
         $filteredProperties = array_merge(array_diff($properties, $publicProperties), array_diff($publicProperties, $properties));
         $data = $this->data($filteredProperties);
         return $data;
+    }
+
+    public function publicProperties()
+    {
+        if (!self::$publicProperties) {
+            $publicProperties = (isset($this->metadata()->public_properties)) ? $this->metadata()->public_properties : $this->metadata()->properties();
+            self::$publicProperties = $publicProperties;
+        }
+        return self::$publicProperties;
     }
 
     /** Setters */

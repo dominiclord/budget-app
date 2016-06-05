@@ -1,125 +1,227 @@
 /* jshint esnext: true */
 import { $document, $window, $html, $body } from './utils/environment';
-import tap from './ractive/ractive-events-tap';
-import fade from './ractive/ractive-transitions-fade';
+import tap  from './ractive/ractive-events-tap';
 import load from './ractive/ractive-load';
+import fade from './ractive/ractive-transitions-fade';
 
 class App {
 	constructor() {
-        /**
-         * Create a new transaction (form and event management)
-         */
-        var newTransactionController;
 
-        Ractive.load('assets/templates/NewTransaction.html').then( function ( NewTransactionView ) {
-            // NewTransactionView is a constructor that extends Ractive
-            // i.e. NewTransactionView = Ractive.extend({...})
-            newTransactionController = new NewTransactionView({
-                el: '#newTransaction',
-                data: {
-                    headerTitle: 'New transaction'
-                }
-            });
+        /* Load template parts */
+        Ractive.load('assets/templates/NewTransaction.html').then((NewTransactionView) => {
+            this.newTransactionController = this.initNewTransactionController(NewTransactionView);
+        }).catch(this.ractiveLoadCatch);
 
-            initNewTransactionController();
-
-        }).catch( function ( err ) {
-            // the setTimeout ensures the error doesn't get swallowed
-            // (this can be a problem with promises...)
-            setTimeout( function ( err ) {
-                throw err;
-            });
-        });
-
-        function initNewTransactionController() {
-            // newTransactionController.on( 'newTransaction', function ( transaction ) {
-            //     console.log( 'saving to server...', transaction );
-
-            //     var jqxhr = $.ajax({
-            //         method: 'POST',
-            //         url: '/api/v1/transactions',
-            //         data: transaction
-            //     })
-            //     .done(function(response) {
-            //         console.log(response.message);
-
-            //         if (response.status === 'ok') {
-            //             console.log(response.results);
-            //         }
-            //     })
-            //     .fail(function() {
-            //         console.log('error');
-            //     })
-            //     .always(function() {
-            //         console.log('finished');
-            //     });
-            // });
-        }
-
-        /**
-         * Display recent transactions list
-         */
-        var recentTransactionsController;
-
-        Ractive.load('assets/templates/RecentTransactions.html').then( function ( RecentTransactionsView ) {
-            // NewTransactionView is a constructor that extends Ractive
-            // i.e. NewTransactionView = Ractive.extend({...})
-            recentTransactionsController = new RecentTransactionsView({
-                el: '#recentTransactions',
-                data:{
-                    transactions: [],
-                    sort: function ( array, column ) {
-                        array = array.slice(); // clone, so we don't modify the underlying data
-
-                        return array.sort( function ( a, b ) {
-                            return a[ column ] < b[ column ] ? 1 : -1;
-                        });
-                    },
-                    sortColumn: 'creation_date'
-                }
-            });
-
-            recentTransactionsController.on( 'sort', function ( event, column ) {
-                this.set( 'sortColumn', column );
-            });
-
-            initRecentTransactionsController();
-
-        }).catch( function ( err ) {
-            setTimeout( function ( err ) {
-                throw err;
-            });
-        });
-
-        function initRecentTransactionsController() {
-            console.log( 'Loading recent transactions' );
-
-            var jqxhr = $.ajax({
-                method: 'GET',
-                url: '/api/v1/transactions',
-                data: {
-                    count: 5
-                }
-            })
-            .done(function(response) {
-                console.log(response.message);
-
-                if (response.status === 'ok') {
-                    recentTransactionsController.set('transactions', response.results);
-                }
-            })
-            .fail(function() {
-                console.log('error');
-            })
-            .always(function() {
-                console.log('finished');
-            });
-
-            newTransactionController.on('newTransactionSaved', function (transaction) {
-                recentTransactionsController.push('transactions', transaction);
-            });
-        }
+        Ractive.load('assets/templates/RecentTransactions.html').then((RecentTransactionsView) => {
+            this.recentTransactionsController = this.initRecentTransactionsController(RecentTransactionsView);
+        }).catch(this.ractiveLoadCatch);
 	}
+
+    /**
+     * This controller is used for creating new transactions
+     * Allows communication between the form and the API
+     *
+     * @param  {Ractive Object} NewTransactionView  Constructor that extends Ractive
+     *                                              i.e. NewTransactionView = Ractive.extend({...})
+     * @return {Ractive Object} controller          Ractive instance
+     */
+    initNewTransactionController(NewTransactionView) {
+        var _this = this;
+        var controller = new NewTransactionView({
+            el: '#newTransaction',
+            data: {
+                headerTitle: 'New transaction'
+                // news: window.newsOptions.news,
+                // page: window.newsOptions.page,
+                // nextPage: window.newsOptions.nextPage,
+                // state: window.newsOptions.state
+            },
+            events: { tap },
+            transitions: { fade },
+
+            /**
+             * Allows us to set proxy events and run other tasks when controller is initialized
+             *
+             * @param  {array}  options  Array of options
+             */
+            oninit: function(options) {
+                console.log ('htmmm');
+
+                /* Proxy events */
+                this.on({
+                    /**
+                     * Event triggered when new transaction form is submitted
+                     * Extracts data from the form and submits it to API
+                     * @param  {object}  event  Ractive event object
+                     */
+                    submitTransaction: function(event) {
+                        // (event, {
+                        //     type: type,
+                        //     amount: amount,
+                        //     category: category,
+                        //     timestamp: timestamp,
+                        //     description: description
+                        // })
+                        // Prevent the page from reloading
+                        event.original.preventDefault();
+
+                        let transactionModel = _this.getTransactionModel({
+                            type: this.get('type'),
+                            amount: this.get('amount'),
+                            category: this.get('category'),
+                            creationDate: this.get('creationDate'),
+                            description: this.get('description')
+                        });
+
+                        console.log('Saving to server...', transactionModel);
+
+                        // Send the data to our API
+                        $.ajax({
+                            method: 'POST',
+                            url: '/api/v1/transactions',
+                            data: transactionModel
+                        })
+                        .done((response) => {
+                            console.log(response.message);
+
+                            if (response.status === 'ok') {
+                                console.log(response.results);
+
+                                // Push the new transaction to the recent transaction list
+                                let transaction = response.results.shift();
+                                if (typeof transaction !== 'undefined') {
+                                    _this.recentTransactionsController.push('transactions', transaction);
+                                }
+
+                                // Reset the form
+                                document.activeElement.blur();
+                                $('.valid').removeClass('valid');
+
+                                this.set({
+                                    type: 0,
+                                    amount: '',
+                                    category: null,
+                                    timestamp: '',
+                                    description: ''
+                                });
+                            }
+                        })
+                        .fail(() => {
+                            console.log('error');
+                        })
+                        .always(() => {
+                            console.log('finished');
+                        });
+                    }
+                });
+            }
+        });
+        return controller;
+    }
+
+    /**
+     * This controller is displays recent transactions in a list
+     *
+     * @param  {Ractive Object} RecentTransactionsView  Constructor that extends Ractive
+     * @return {Ractive Object} controller              Ractive instance
+     */
+    initRecentTransactionsController(RecentTransactionsView) {
+        var _this = this;
+        var controller = new RecentTransactionsView({
+            el: '#recentTransactions',
+            data: {
+                transactions: [],
+                sortColumn: 'creationDate'
+            },
+            computed: {
+                sortedTransactions: function() {
+                    let column = this.get('sortColumn');
+                    return this.get('transactions').slice().sort(function(a, b) {
+                        return a[column] < b[column] ? 1 : -1;
+                    });
+                }
+            },
+            events: { tap },
+            transitions: { fade },
+
+            /**
+             * Allows us to set proxy events and run other tasks when controller is initialized
+             *
+             * @param  {array}  options  Array of options
+             */
+            oninit: function(options) {
+                console.log('Loading recent transactions');
+
+                /* Load most recent transactions */
+                $.ajax({
+                    method: 'GET',
+                    url: '/api/v1/transactions',
+                    data: {
+                        count: 5
+                    }
+                })
+                .done((response) => {
+                    if (response.status === 'ok') {
+                        this.set('transactions', response.results);
+                    }
+                })
+                .fail(() => {
+                    console.log('error');
+                })
+                .always(() => {
+                    console.log('finished');
+                });
+
+                /* Proxy events */
+                this.on({
+                    /**
+                     * Sets the sorting column
+                     * @param  {object}  event   Ractive event object
+                     * @param  {object}  column  Column ident
+                     */
+                    sort: (event, column) => {
+                        this.set('sortColumn', column);
+                    }
+                });
+            }
+        });
+        return controller;
+    }
+
+    /**
+     * Transaction model
+     * @param  {object}  params  Initial values for the model
+     * @return {object}          Transaction model
+     *
+     * Model properties
+     *
+     * @param {boolean}  type          Expense (false) or income (true)
+     * @param {number}   amount        Positive amount
+     * @param {string}   category      Category ident
+     * @param {string}   creationDate  YYYY-MM-DD format
+     * @param {string}   description   Description
+     */
+    getTransactionModel(params) {
+        var defaults = {
+            type: 0,
+            amount: '',
+            category: null,
+            creationDate: '',
+            description: ''
+        };
+        return $.extend(defaults, params);
+    }
+
+    /**
+     * Catches Ractive Load errors
+     * The setTimeout ensures the error doesn't get swallowed (this can be a problem with promises...)
+     * @param  {Object} err
+     */
+    ractiveLoadCatch(err) {
+        setTimeout(function(err) {
+            throw err;
+        });
+    }
 }
 
 new App();

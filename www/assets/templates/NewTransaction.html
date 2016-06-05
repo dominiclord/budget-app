@@ -12,13 +12,7 @@
     </ul>
 </nav>
 <div class="row" intro="fade:{delay:{200}}">
-    <form class="col s12" on-submit="post(event, {
-            type: type,
-            amount: amount,
-            category: category,
-            timestamp: timestamp,
-            description: description
-        })">
+    <form class="col s12" on-submit="submitTransaction">
         <div class="row">
             <div class="input-field col s12 m6">
                 <p>
@@ -41,7 +35,7 @@
                 <label for="input_category">Category</label>
             </div>
             <div class="input-field col s12 m6">
-                <input value="{{timestamp}}" type="date" class="validate datepicker">
+                <input value="{{creationDate}}" type="date" class="validate datepicker">
             </div>
             <div class="input-field col s12 m6">
                 <input id="input_description" value="{{description}}" type="text" class="validate" required>
@@ -59,50 +53,3 @@
         </div>
     </form>
 </div>
-
-<script>
-component.exports = {
-    post: function (event, transaction) {
-        // Prevent the page from reloading
-        event.original.preventDefault();
-
-        // Add to the list of recent transactions
-        //this.push('transactions', transaction);
-
-        // Fire an event, so we can save the transaction to our server
-        console.log( 'saving to server...', transaction );
-        var self = this;
-        var jqxhr = $.ajax({
-            method: 'POST',
-            url: '/api/v1/transactions',
-            data: transaction
-        })
-        .done(function(response) {
-            console.log(response.message);
-
-            if (response.status === 'ok') {
-                console.log(response.results);
-                self.fire('newTransactionSaved', response.results);
-
-                // Reset the form
-                document.activeElement.blur();
-                $('.valid').removeClass('valid');
-
-                self.set({
-                    type: 0,
-                    amount: '',
-                    category: '',
-                    timestamp: '',
-                    description: ''
-                });
-            }
-        })
-        .fail(function() {
-            console.log('error');
-        })
-        .always(function() {
-            console.log('finished');
-        });
-    }
-};
-</script>

@@ -206,10 +206,10 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
             $body = $request->getParsedBody();
             error_log(print_R($body, true));
 
-            if (empty($body['timestamp'])) {
+            if (empty($body['creationDate'])) {
                 $creationDate = new \DateTime('now', new \DateTimeZone('America/Montreal'));
             } else {
-                $creationDate = new \DateTime($body['timestamp'], new \DateTimeZone('America/Montreal'));
+                $creationDate = new \DateTime($body['creationDate'], new \DateTimeZone('America/Montreal'));
             }
 
             // Is income : type 1
@@ -271,7 +271,7 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
          * Modify a transaction
          * @param $db   Database connection
          * @todo  Add authentification
-         * @todo  Change timestamp_modified only if data changes?
+         * @todo  Change modifiedDate only if data changes?
          */
         $this->patch('/transactions/{id}', function ($request, $response, $args) use ($charcoalHelper) {
             $body = $request->getParsedBody();

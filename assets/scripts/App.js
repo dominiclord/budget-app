@@ -30,7 +30,8 @@ class App {
         var controller = new NewTransactionView({
             el: '#newTransaction',
             data: {
-                headerTitle: 'New transaction'
+                headerTitle: 'New transaction',
+                transactionCategories: []
                 // news: window.newsOptions.news,
                 // page: window.newsOptions.page,
                 // nextPage: window.newsOptions.nextPage,
@@ -45,6 +46,24 @@ class App {
              * @param  {array}  options  Array of options
              */
             oninit: function(options) {
+                /* Load transaction categories */
+                $.ajax({
+                    method: 'GET',
+                    url: '/api/v1/transaction-categories',
+                    data: {}
+                })
+                .done((response) => {
+                    if (response.status === 'ok') {
+                        this.set('transactionCategories', response.results);
+                    }
+                })
+                .fail(() => {
+                    console.log('Error');
+                })
+                .always(() => {
+                    $('select').chosen();
+                });
+
                 /* Proxy events */
                 this.on({
                     /**
@@ -53,13 +72,6 @@ class App {
                      * @param  {object}  event  Ractive event object
                      */
                     submitTransaction: function(event) {
-                        // (event, {
-                        //     type: type,
-                        //     amount: amount,
-                        //     category: category,
-                        //     timestamp: timestamp,
-                        //     description: description
-                        // })
                         // Prevent the page from reloading
                         event.original.preventDefault();
 

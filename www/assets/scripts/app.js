@@ -55,7 +55,8 @@ var App = function () {
             var controller = new NewTransactionView({
                 el: '#newTransaction',
                 data: {
-                    headerTitle: 'New transaction'
+                    headerTitle: 'New transaction',
+                    transactionCategories: []
                     // news: window.newsOptions.news,
                     // page: window.newsOptions.page,
                     // nextPage: window.newsOptions.nextPage,
@@ -70,6 +71,23 @@ var App = function () {
                  * @param  {array}  options  Array of options
                  */
                 oninit: function oninit(options) {
+                    var _this3 = this;
+
+                    /* Load transaction categories */
+                    $.ajax({
+                        method: 'GET',
+                        url: '/api/v1/transaction-categories',
+                        data: {}
+                    }).done(function (response) {
+                        if (response.status === 'ok') {
+                            _this3.set('transactionCategories', response.results);
+                        }
+                    }).fail(function () {
+                        console.log('Error');
+                    }).always(function () {
+                        $('select').chosen();
+                    });
+
                     /* Proxy events */
                     this.on({
                         /**
@@ -78,15 +96,8 @@ var App = function () {
                          * @param  {object}  event  Ractive event object
                          */
                         submitTransaction: function submitTransaction(event) {
-                            var _this3 = this;
+                            var _this4 = this;
 
-                            // (event, {
-                            //     type: type,
-                            //     amount: amount,
-                            //     category: category,
-                            //     timestamp: timestamp,
-                            //     description: description
-                            // })
                             // Prevent the page from reloading
                             event.original.preventDefault();
 
@@ -117,7 +128,7 @@ var App = function () {
                                     document.activeElement.blur();
                                     $('.valid').removeClass('valid');
 
-                                    _this3.set({
+                                    _this4.set({
                                         type: 0,
                                         amount: '',
                                         category: null,
@@ -171,7 +182,7 @@ var App = function () {
                  * @param  {array}  options  Array of options
                  */
                 oninit: function oninit(options) {
-                    var _this4 = this;
+                    var _this5 = this;
 
                     console.log('Loading recent transactions');
 
@@ -184,7 +195,7 @@ var App = function () {
                         }
                     }).done(function (response) {
                         if (response.status === 'ok') {
-                            _this4.set('transactions', response.results);
+                            _this5.set('transactions', response.results);
                         }
                     }).fail(function () {
                         console.log('Error');
@@ -200,7 +211,7 @@ var App = function () {
                          * @param  {object}  column  Column ident
                          */
                         sort: function sort(event, column) {
-                            _this4.set('sortColumn', column);
+                            _this5.set('sortColumn', column);
                         }
                     });
                 }

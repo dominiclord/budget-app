@@ -31,8 +31,13 @@
                 <label for="input_amount">Amount ($)</label>
             </div>
             <div class="input-field col s12 m6">
-                <input id="input_category" value="{{category}}" type="text" class="validate" required>
-                <label for="input_category">Category</label>
+                <select id="input_category" value="{{category}}" class="validate" required>
+                    <option selected disabled>Select a category</option>
+                    {{#transactionCategories}}
+                    <option value="{{id}}">{{name}}</option>
+                    {{/transactionCategories}}
+                </select>
+                <label for="input_category" class="active">Category</label>
             </div>
             <div class="input-field col s12 m6">
                 <input value="{{creationDate}}" type="date" class="validate datepicker">

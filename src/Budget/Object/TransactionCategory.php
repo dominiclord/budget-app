@@ -15,7 +15,9 @@ use \Charcoal\Model\AbstractModel;
 use \Charcoal\Object\CategoryInterface;
 use \Charcoal\Object\CategoryTrait;
 
-use \Budget\Object\Transaction;
+// Model Aware
+use Budget\Support\Traits\ModelAwareTrait;
+use Budget\Support\Interfaces\ModelAwareInterface;
 
 use \Budget\Support\Traits\PublicDataTrait;
 use \Budget\Support\Interfaces\PublicDataInterface;
@@ -31,20 +33,33 @@ use \Budget\Support\Interfaces\PublicDataInterface;
  */
 class TransactionCategory extends AbstractModel implements
     CategoryInterface,
+    ModelAwareInterface,
     PublicDataInterface
 {
     use CategoryTrait;
-    use PublicDataTrait;
+    use ModelAwareTrait;
+    use PublicDataTrait {
+        publicData as publicDataFromTrait;
+    }
 
     /**
-     * Determine how many items in this category.
-     *
-     * @return integer
+     * @param Container  $container  The dependencies.
      */
-    public function numCategoryItems()
+    public function setDependencies(Container $container)
     {
-        # return parent::numCategoryItems();
-        return (integer)$this->category_item_count;
+        $this->setModelFactory($container['model/factory']);
+    }
+
+    /**
+     * Overriding PublicDataTrait's publicData method
+     * @return array                 Object data
+     */
+    public function publicData(array $supplants = null)
+    {
+        $supplants = [
+            'count' => $this->numCategoryItems()
+        ];
+        return $this->publicDataFromTrait($supplants);
     }
 
     /**
@@ -54,13 +69,13 @@ class TransactionCategory extends AbstractModel implements
      */
     public function loadCategoryItems()
     {
-        return $this->collection('budget/object/transaction')
+        $loader = $this->collection('budget/object/transaction')
             ->addFilter('active', true)
             ->addFilter([
                 'property'  => 'category',
                 'val'       => $this->id(),
                 'operator'  => 'FIND_IN_SET'
-            ])
-            ->load();
+            ]);
+        return $loader->load();
     }
 }

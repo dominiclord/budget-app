@@ -14,6 +14,11 @@
 		}
 	},
 
+    "public_properties":[
+        "id",
+        "name"
+    ],
+
 	"data": {
 		"category_item_type": "budget/object/transaction",
 		"category_item_count": 0

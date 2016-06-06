@@ -86,11 +86,13 @@ $budgetApp->get('/[{foo}]', function ($request, $response, $args) use ($charcoal
 /*
 =============================
 
-URL                          HTTP Method      Operation
-/api/v1/transations          GET              Returns an array of transactions
-/api/v1/transations/:id      GET              Returns the transaction with id of :id
-/api/v1/transations          POST             Adds a new transaction and returns it with an id attribute added
-/api/v1/transations/:id      PUT              Updates the transaction with id of :id
+URL                            HTTP Method      Operation
+/api/v1/transations            GET              Returns an array of transactions
+/api/v1/transations/:id        GET              Returns the transaction with id of :id
+/api/v1/transations            POST             Adds a new transaction and returns it with an id attribute added
+/api/v1/transations/:id        PUT              Updates the transaction with id of :id
+
+/api/v1/transation-categories  GET              Returns an array of transaction categories
 
 =============================
 */
@@ -346,9 +348,52 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
             */
             // return $response;
             var_dump($request->getParsedBody());
-            return $response->write(var_export($request->getParsedBody(),true));
+            return $response->write(var_export($request->getParsedBody(), true));
         });
 
+        /**
+         * Fetch all transaction categories
+         * @todo Add authentification
+         */
+        $this->get('/transaction-categories', function ($request, $response, $args) use ($charcoalHelper) {
+            $status = 200;
+
+            // Params are used for filtering and sorting transaction category list
+            $params = $request->getQueryParams();
+            // Default : 20
+            $count = (isset($params['count']) && is_numeric($params['count'])) ? $params['count'] : 20;
+            // Default : 1
+            $page = (isset($params['page']) && is_numeric($params['page'])) ? $params['page'] : 1;
+            // Default : sorted alphabetically a-z according to name property
+            $order = (isset($params['order'])) ? $params['order'] : 'DESC';
+
+            try {
+                $transactionCategories = $charcoalHelper
+                    ->collection('budget/object/transaction-category')
+                    ->addOrder('name', $order)
+                    ->setPage(1)
+                    ->setNumPerPage($count)
+                    ->load()
+                    ->objectsPublic();
+
+                $data = [
+                    'message' => 'List of transaction categories',
+                    'results' => $transactionCategories,
+                    'status' => 'ok'
+                ];
+            } catch (Exception $e) {
+                $status = 404;
+                $data = [
+                    'message' => 'An error occured : ' . $e->getMessage(),
+                    'results' => [],
+                    'status' => 'error'
+                ];
+            }
+
+            return $response->withStatus($status)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write(json_encode($data));
+        });
     });
 
 });

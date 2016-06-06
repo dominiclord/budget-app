@@ -45,12 +45,16 @@ class Transaction extends AbstractModel implements
         $this->setModelFactory($container['model/factory']);
     }
 
-    public function publicData(array $aliases = null)
+    /**
+     * Overriding PublicDataTrait's publicData method
+     * @return array                 Object data
+     */
+    public function publicData(array $supplants = null)
     {
-        $aliases = [
+        $supplants = [
             'category' => $this->categoryAsObject()
         ];
-        return $this->publicDataFromTrait($aliases);
+        return $this->publicDataFromTrait($supplants);
     }
 
     /**
@@ -62,7 +66,8 @@ class Transaction extends AbstractModel implements
         if (!$this->categoryObject) {
             $categoryObject = $this
                 ->obj('budget/object/transaction-category')
-                ->load($this->category());
+                ->load($this->category())
+                ->publicData();
 
             $this->categoryObject = $categoryObject;
         }

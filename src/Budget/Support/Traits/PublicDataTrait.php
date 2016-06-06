@@ -16,12 +16,12 @@ trait PublicDataTrait
     /**
      * Return the object data as an array
      * Filters returned properties according to $this->publicProperties
-     * Allows replacing data with an alias value (ex.: category name instead of category id)
+     * Allows replacing data with an supplanted value (ex.: category name instead of category id)
      *
-     * @param  array  $aliases  Array of aliases and their values to replace default public data
-     * @return array
+     * @param  array|null  $supplants  Array of supplants and their values to replace default public data
+     * @return array                   Array of default data() filtered by public properties merged with supplanted values
      */
-    public function publicData(array $aliases = null)
+    public function publicData(array $supplants = null)
     {
         $properties = array_keys($this->metadata()->properties());
         $publicProperties = $this->publicProperties();
@@ -29,11 +29,12 @@ trait PublicDataTrait
 
         $data = $this->data($filteredProperties);
 
-        if ($aliases !== null) {
-            foreach($aliases as $ident => $value) {
-                if (!empty($data[$ident])) {
-                    $data[$ident] = $value;
-                }
+        if ($supplants !== null) {
+            foreach($supplants as $ident => $value) {
+                $data[$ident] = $value;
+                // if (!empty($data[$ident])) {
+                //     $data[$ident] = $value;
+                // }
             }
         }
 

@@ -174,8 +174,19 @@ class Collection implements
         return $this->objects;
     }
 
+    /**
+     * Get the ordered object array, with objects limited to public scope properties
+     * @return array
+     */
     public function objectsPublic()
     {
+        if (!$this->objectsPublic) {
+            $objects = [];
+            foreach ($this->objects as $obj) {
+                $objects[] = $obj->publicData();
+            }
+            $this->objectsPublic = $objects;
+        }
         return $this->objectsPublic;
     }
 
@@ -198,7 +209,6 @@ class Collection implements
     public function add(ModelInterface $obj)
     {
         $this->objects[] = $obj;
-        $this->objectsPublic[] = $obj->publicData();
         $this->map[$obj->id()] = $obj;
 
         // Chainable

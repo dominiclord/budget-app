@@ -51,8 +51,11 @@ class Transaction extends AbstractModel implements
      */
     public function publicData(array $supplants = null)
     {
+        $creationDate = new DateTime($this->creationDate());
+
         $supplants = [
-            'category' => $this->categoryAsObject()
+            'category' => $this->categoryAsObject(),
+            'creationDate' => $creationDate->format('Y-m-d')
         ];
         return $this->publicDataFromTrait($supplants);
     }

@@ -1,11 +1,14 @@
 /* jshint esnext: true */
 import { $document, $window, $html, $body } from './utils/environment';
-import tap  from './ractive/ractive-events-tap';
-import load from './ractive/ractive-load';
 import fade from './ractive/ractive-transitions-fade';
+import load from './ractive/ractive-load';
+import tap  from './ractive/ractive-events-tap';
+import select2Decorator from './ractive/ractive-decorators-select2'; //@shame
 
 class App {
 	constructor() {
+        /* Prepare decorators */
+        this.prepareDecorators();
 
         /* Load template parts */
         load('assets/templates/NewTransaction.html').then((NewTransactionView) => {
@@ -18,9 +21,31 @@ class App {
 	}
 
     /**
+     * Transaction model
+     * @param  {object}  params  Initial values for the model
+     * @return {object}          Transaction model
+     *
+     * Model properties
+     * @param {boolean}  type          Expense (false) or income (true)
+     * @param {number}   amount        Positive amount
+     * @param {string}   category      Category ident
+     * @param {string}   creationDate  YYYY-MM-DD format
+     * @param {string}   description   Description
+     */
+    getTransactionModel(params) {
+        var defaults = {
+            type: 0,
+            amount: '',
+            category: null,
+            creationDate: '',
+            description: ''
+        };
+        return $.extend(defaults, params);
+    }
+
+    /**
      * This controller is used for creating new transactions
      * Allows communication between the form and the API
-     *
      * @param  {Ractive Object} NewTransactionView  Constructor that extends Ractive
      *                                              i.e. NewTransactionView = Ractive.extend({...})
      * @return {Ractive Object} controller          Ractive instance
@@ -32,21 +57,14 @@ class App {
             data: {
                 headerTitle: 'New transaction',
                 transactionCategories: []
-                // news: window.newsOptions.news,
-                // page: window.newsOptions.page,
-                // nextPage: window.newsOptions.nextPage,
-                // state: window.newsOptions.state
             },
             events: { tap },
             transitions: { fade },
 
             /**
-             * Allows us to set proxy events and run other tasks when controller is initialized
-             *
-             * @param  {array}  options  Array of options
+             * Load transaction categories
              */
-            oninit: function(options) {
-                /* Load transaction categories */
+            loadCategories: function() {
                 $.ajax({
                     method: 'GET',
                     url: '/api/v1/transaction-categories',
@@ -60,9 +78,15 @@ class App {
                 .fail(() => {
                     console.log('Error');
                 })
-                .always(() => {
-                    $('select').chosen();
-                });
+                .always(() => {});
+            },
+
+            /**
+             * Allows us to set proxy events and run other tasks when controller is initialized
+             * @param  {array}  options  Array of options
+             */
+            oninit: function(options) {
+                this.loadCategories();
 
                 /* Proxy events */
                 this.on({
@@ -97,6 +121,9 @@ class App {
                                 let transaction = response.results.shift();
                                 if (typeof transaction !== 'undefined') {
                                     _this.recentTransactionsController.push('transactions', transaction);
+
+                                    // We also update the category list in case of a new creation
+                                    this.loadCategories();
                                 }
 
                                 // Reset the form
@@ -127,7 +154,6 @@ class App {
 
     /**
      * This controller is displays recent transactions in a list
-     *
      * @param  {Ractive Object} RecentTransactionsView  Constructor that extends Ractive
      * @return {Ractive Object} controller              Ractive instance
      */
@@ -152,7 +178,6 @@ class App {
 
             /**
              * Allows us to set proxy events and run other tasks when controller is initialized
-             *
              * @param  {array}  options  Array of options
              */
             oninit: function(options) {
@@ -195,27 +220,30 @@ class App {
     }
 
     /**
-     * Transaction model
-     * @param  {object}  params  Initial values for the model
-     * @return {object}          Transaction model
-     *
-     * Model properties
-     *
-     * @param {boolean}  type          Expense (false) or income (true)
-     * @param {number}   amount        Positive amount
-     * @param {string}   category      Category ident
-     * @param {string}   creationDate  YYYY-MM-DD format
-     * @param {string}   description   Description
+     * Decorators need to be in Ractive before any templates are loaded
      */
-    getTransactionModel(params) {
-        var defaults = {
-            type: 0,
-            amount: '',
-            category: null,
-            creationDate: '',
-            description: ''
-        };
-        return $.extend(defaults, params);
+    prepareDecorators() {
+        window.Ractive.decorators.select2.type.transactionCategories = function (node) {
+            /* Select2 options */
+            return {
+                createTag: function (params) {
+                    let term = $.trim(params.term);
+
+                    if (term === '') {
+                        return null;
+                    }
+
+                    return {
+                        id: term,
+                        text: term,
+                        newTag: true
+                    };
+                },
+                placeholder: 'Select a category',
+                tags: true,
+                tokenSeparators: [',']
+            }
+        }
     }
 
     /**
@@ -224,10 +252,10 @@ class App {
      * @param  {Object} err
      */
     ractiveLoadCatch(err) {
-        setTimeout(function(err) {
+        setTimeout(() => {
             throw err;
         });
     }
 }
 
-new App();
+window.App = new App();

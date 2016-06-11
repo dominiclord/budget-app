@@ -6,27 +6,36 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _environment = require('./utils/environment');
 
-var _ractiveEventsTap = require('./ractive/ractive-events-tap');
+var _ractiveTransitionsFade = require('./ractive/ractive-transitions-fade');
 
-var _ractiveEventsTap2 = _interopRequireDefault(_ractiveEventsTap);
+var _ractiveTransitionsFade2 = _interopRequireDefault(_ractiveTransitionsFade);
 
 var _ractiveLoad = require('./ractive/ractive-load');
 
 var _ractiveLoad2 = _interopRequireDefault(_ractiveLoad);
 
-var _ractiveTransitionsFade = require('./ractive/ractive-transitions-fade');
+var _ractiveEventsTap = require('./ractive/ractive-events-tap');
 
-var _ractiveTransitionsFade2 = _interopRequireDefault(_ractiveTransitionsFade);
+var _ractiveEventsTap2 = _interopRequireDefault(_ractiveEventsTap);
+
+var _ractiveDecoratorsSelect = require('./ractive/ractive-decorators-select2');
+
+var _ractiveDecoratorsSelect2 = _interopRequireDefault(_ractiveDecoratorsSelect);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+//@shame
 
 var App = function () {
     function App() {
         var _this2 = this;
 
         _classCallCheck(this, App);
+
+        /* Prepare decorators */
+        this.prepareDecorators();
 
         /* Load template parts */
         (0, _ractiveLoad2.default)('assets/templates/NewTransaction.html').then(function (NewTransactionView) {
@@ -39,16 +48,41 @@ var App = function () {
     }
 
     /**
-     * This controller is used for creating new transactions
-     * Allows communication between the form and the API
+     * Transaction model
+     * @param  {object}  params  Initial values for the model
+     * @return {object}          Transaction model
      *
-     * @param  {Ractive Object} NewTransactionView  Constructor that extends Ractive
-     *                                              i.e. NewTransactionView = Ractive.extend({...})
-     * @return {Ractive Object} controller          Ractive instance
+     * Model properties
+     * @param {boolean}  type          Expense (false) or income (true)
+     * @param {number}   amount        Positive amount
+     * @param {string}   category      Category ident
+     * @param {string}   creationDate  YYYY-MM-DD format
+     * @param {string}   description   Description
      */
 
 
     _createClass(App, [{
+        key: 'getTransactionModel',
+        value: function getTransactionModel(params) {
+            var defaults = {
+                type: 0,
+                amount: '',
+                category: null,
+                creationDate: '',
+                description: ''
+            };
+            return $.extend(defaults, params);
+        }
+
+        /**
+         * This controller is used for creating new transactions
+         * Allows communication between the form and the API
+         * @param  {Ractive Object} NewTransactionView  Constructor that extends Ractive
+         *                                              i.e. NewTransactionView = Ractive.extend({...})
+         * @return {Ractive Object} controller          Ractive instance
+         */
+
+    }, {
         key: 'initNewTransactionController',
         value: function initNewTransactionController(NewTransactionView) {
             var _this = this;
@@ -57,23 +91,16 @@ var App = function () {
                 data: {
                     headerTitle: 'New transaction',
                     transactionCategories: []
-                    // news: window.newsOptions.news,
-                    // page: window.newsOptions.page,
-                    // nextPage: window.newsOptions.nextPage,
-                    // state: window.newsOptions.state
                 },
                 events: { tap: _ractiveEventsTap2.default },
                 transitions: { fade: _ractiveTransitionsFade2.default },
 
                 /**
-                 * Allows us to set proxy events and run other tasks when controller is initialized
-                 *
-                 * @param  {array}  options  Array of options
+                 * Load transaction categories
                  */
-                oninit: function oninit(options) {
+                loadCategories: function loadCategories() {
                     var _this3 = this;
 
-                    /* Load transaction categories */
                     $.ajax({
                         method: 'GET',
                         url: '/api/v1/transaction-categories',
@@ -84,9 +111,15 @@ var App = function () {
                         }
                     }).fail(function () {
                         console.log('Error');
-                    }).always(function () {
-                        $('select').chosen();
-                    });
+                    }).always(function () {});
+                },
+
+                /**
+                 * Allows us to set proxy events and run other tasks when controller is initialized
+                 * @param  {array}  options  Array of options
+                 */
+                oninit: function oninit(options) {
+                    this.loadCategories();
 
                     /* Proxy events */
                     this.on({
@@ -122,6 +155,9 @@ var App = function () {
                                     var transaction = response.results.shift();
                                     if (typeof transaction !== 'undefined') {
                                         _this.recentTransactionsController.push('transactions', transaction);
+
+                                        // We also update the category list in case of a new creation
+                                        _this4.loadCategories();
                                     }
 
                                     // Reset the form
@@ -150,7 +186,6 @@ var App = function () {
 
         /**
          * This controller is displays recent transactions in a list
-         *
          * @param  {Ractive Object} RecentTransactionsView  Constructor that extends Ractive
          * @return {Ractive Object} controller              Ractive instance
          */
@@ -178,7 +213,6 @@ var App = function () {
 
                 /**
                  * Allows us to set proxy events and run other tasks when controller is initialized
-                 *
                  * @param  {array}  options  Array of options
                  */
                 oninit: function oninit(options) {
@@ -220,30 +254,33 @@ var App = function () {
         }
 
         /**
-         * Transaction model
-         * @param  {object}  params  Initial values for the model
-         * @return {object}          Transaction model
-         *
-         * Model properties
-         *
-         * @param {boolean}  type          Expense (false) or income (true)
-         * @param {number}   amount        Positive amount
-         * @param {string}   category      Category ident
-         * @param {string}   creationDate  YYYY-MM-DD format
-         * @param {string}   description   Description
+         * Decorators need to be in Ractive before any templates are loaded
          */
 
     }, {
-        key: 'getTransactionModel',
-        value: function getTransactionModel(params) {
-            var defaults = {
-                type: 0,
-                amount: '',
-                category: null,
-                creationDate: '',
-                description: ''
+        key: 'prepareDecorators',
+        value: function prepareDecorators() {
+            window.Ractive.decorators.select2.type.transactionCategories = function (node) {
+                /* Select2 options */
+                return {
+                    createTag: function createTag(params) {
+                        var term = $.trim(params.term);
+
+                        if (term === '') {
+                            return null;
+                        }
+
+                        return {
+                            id: term,
+                            text: term,
+                            newTag: true
+                        };
+                    },
+                    placeholder: 'Select a category',
+                    tags: true,
+                    tokenSeparators: [',']
+                };
             };
-            return $.extend(defaults, params);
         }
 
         /**
@@ -255,7 +292,7 @@ var App = function () {
     }, {
         key: 'ractiveLoadCatch',
         value: function ractiveLoadCatch(err) {
-            setTimeout(function (err) {
+            setTimeout(function () {
                 throw err;
             });
         }
@@ -264,9 +301,127 @@ var App = function () {
     return App;
 }();
 
-new App();
+window.App = new App();
 
-},{"./ractive/ractive-events-tap":2,"./ractive/ractive-load":3,"./ractive/ractive-transitions-fade":4,"./utils/environment":5}],2:[function(require,module,exports){
+},{"./ractive/ractive-decorators-select2":2,"./ractive/ractive-events-tap":3,"./ractive/ractive-load":4,"./ractive/ractive-transitions-fade":5,"./utils/environment":6}],2:[function(require,module,exports){
+'use strict';
+
+/*
+
+    ractive-decorators-select2
+    =============================================
+
+    Integrate Ractive with Select2
+
+    ==========================
+
+    Troubleshooting: If you're using a module system in your app (AMD or
+    something more nodey) then you may need to change the paths below,
+    where it says `require( 'ractive' )` or `define([ 'ractive' ]...)`.
+
+    ==========================
+
+    Usage: Include this file on your page below Ractive, e.g:
+
+        <script src='lib/ractive.js'></script>
+        <script src='lib/ractive-decorators-select2.js'></script>
+
+    Or, if you're using a module loader, require this module:
+
+        // requiring the plugin will 'activate' it - no need to use
+        // the return value
+        require( 'ractive-decorators-select2' );
+
+*/
+
+(function (global, factory) {
+
+    'use strict';
+
+    // Common JS (i.e. browserify) environment
+
+    if (typeof module !== 'undefined' && module.exports && typeof require === 'function') {
+        factory((typeof window !== "undefined" ? window['Ractive'] : typeof global !== "undefined" ? global['Ractive'] : null), (typeof window !== "undefined" ? window['jQuery'] : typeof global !== "undefined" ? global['jQuery'] : null));
+    }
+
+    // AMD?
+    else if (typeof define === 'function' && define.amd) {
+            define(['ractive', 'jquery'], factory);
+        }
+
+        // browser global
+        else if (global.Ractive && global.jQuery) {
+                factory(global.Ractive, global.jQuery);
+            } else {
+                throw new Error('Could not find Ractive or jQuery! They must be loaded before the ractive-decorators-select2 plugin');
+            }
+})(typeof window !== 'undefined' ? window : undefined, function (Ractive, $) {
+
+    'use strict';
+
+    var _select2Decorator;
+
+    _select2Decorator = function select2Decorator(node, type) {
+
+        var ractive = node._ractive.root || node._ractive.ractive;
+        var setting = false;
+        var observer;
+
+        var options = {};
+        if (type) {
+            if (!_select2Decorator.type.hasOwnProperty(type)) {
+                throw new Error('Ractive Select2 type "' + type + '" is not defined!');
+            }
+
+            options = _select2Decorator.type[type];
+            if (typeof options === 'function') {
+                options = options.call(this, node);
+            }
+        }
+
+        // Push changes from ractive to select2
+        if (node._ractive.binding) {
+            var binding = node._ractive.binding;
+            var keypath = binding.keypath ? binding.keypath.str : binding.model.key;
+            observer = ractive.observe(keypath, function (newvalue) {
+                if (!setting) {
+                    setting = true;
+                    window.setTimeout(function () {
+                        if (newvalue === "") $(node).select2("val", "");
+
+                        $(node).change();
+                        setting = false;
+                    }, 0);
+                }
+            });
+        }
+
+        // Pull changes from select2 to ractive
+        $(node).select2(options).on('change', function () {
+            if (!setting) {
+                setting = true;
+                ractive.updateModel();
+                setting = false;
+            }
+        });
+
+        return {
+            teardown: function teardown() {
+                $(node).select2('destroy');
+
+                if (observer) {
+                    observer.cancel();
+                }
+            }
+        };
+    };
+
+    _select2Decorator.type = {};
+
+    Ractive.decorators.select2 = _select2Decorator;
+});
+
+},{}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -473,7 +628,7 @@ function handleKeydown(event) {
 
 exports.default = tap;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (process,Buffer){
 'use strict';
 
@@ -1290,7 +1445,7 @@ load.modules = {};
 exports.default = load;
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"_process":11,"buffer":8,"fs":7}],4:[function(require,module,exports){
+},{"_process":12,"buffer":9,"fs":8}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1319,7 +1474,7 @@ function fade(t, params) {
 
 exports.default = fade;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1335,7 +1490,7 @@ exports.$window = $window;
 exports.$html = $html;
 exports.$body = $body;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict'
 
 exports.toByteArray = toByteArray
@@ -1446,9 +1601,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],7:[function(require,module,exports){
-
 },{}],8:[function(require,module,exports){
+
+},{}],9:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -3163,14 +3318,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":6,"ieee754":10,"isarray":9}],9:[function(require,module,exports){
-var toString = {}.toString;
-
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-},{}],10:[function(require,module,exports){
+},{"base64-js":7,"ieee754":10,"isarray":11}],10:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -3257,9 +3405,21 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 },{}],11:[function(require,module,exports){
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
+
+},{}],12:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it don't break things.
+var cachedSetTimeout = setTimeout;
+var cachedClearTimeout = clearTimeout;
+
 var queue = [];
 var draining = false;
 var currentQueue;
@@ -3284,7 +3444,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = setTimeout(cleanUpNextTick);
+    var timeout = cachedSetTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -3301,7 +3461,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    clearTimeout(timeout);
+    cachedClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -3313,7 +3473,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
+        cachedSetTimeout(drainQueue, 0);
     }
 };
 

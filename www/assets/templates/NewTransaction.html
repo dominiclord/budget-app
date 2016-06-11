@@ -31,8 +31,9 @@
                 <label for="input_amount">Amount ($)</label>
             </div>
             <div class="input-field col s12 m6">
-                <select id="input_category" value="{{category}}" class="validate" required>
-                    <option selected disabled>Select a category</option>
+                <!-- <option selected disabled>Select a category</option> -->
+                <select id="input_category" value="{{category}}" decorator="select2:transactionCategories" class="validate" required>
+                    <option selected disabled></option>
                     {{#transactionCategories}}
                     <option value="{{id}}">{{name}}</option>
                     {{/transactionCategories}}
@@ -40,7 +41,8 @@
                 <label for="input_category" class="active">Category</label>
             </div>
             <div class="input-field col s12 m6">
-                <input value="{{creationDate}}" type="date" class="validate datepicker">
+                <input  id="input_creationDate" value="{{creationDate}}" type="date" class="validate datepicker">
+                <label for="input_creationDate" class="active">Date</label>
             </div>
             <div class="input-field col s12 m6">
                 <input id="input_description" value="{{description}}" type="text" class="validate" required>

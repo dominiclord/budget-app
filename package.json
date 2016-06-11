@@ -21,6 +21,7 @@
     "watchify": "3.7.0"
   },
   "browserify-shim": {
+    "jquery": "global:jQuery",
     "ractive": "global:Ractive"
   }
 }

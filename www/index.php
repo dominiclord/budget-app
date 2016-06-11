@@ -154,7 +154,6 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
 
         /**
          * Fetch a single transaction
-         * @param $db   Database connection
          * @todo Add authentification
          */
         $this->get('/transactions/{id}', function ($request, $response, $args) use ($charcoalHelper) {
@@ -192,14 +191,11 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
 
         /**
          * Create a transaction
-         * @param $db   Database connection
-         * @todo Everything
          * @todo Add authentification
          */
         $this->post('/transactions', function ($request, $response, $args) use ($charcoalHelper) {
             $status = 200;
             $body = $request->getParsedBody();
-            error_log(print_R($body, true));
 
             if (empty($body['creationDate'])) {
                 $creationDate = new \DateTime('now', new \DateTimeZone('America/Montreal'));
@@ -283,7 +279,6 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
 
         /**
          * Modify a transaction
-         * @param $db   Database connection
          * @todo  Add authentification
          * @todo  Change modifiedDate only if data changes?
          */
@@ -365,7 +360,7 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
             // Default : 1
             $page = (isset($params['page']) && is_numeric($params['page'])) ? $params['page'] : 1;
             // Default : sorted alphabetically a-z according to name property
-            $order = (isset($params['order'])) ? $params['order'] : 'DESC';
+            $order = (isset($params['order'])) ? $params['order'] : 'ASC';
 
             try {
                 $transactionCategories = $charcoalHelper
@@ -381,6 +376,64 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
                     'results' => $transactionCategories,
                     'status' => 'ok'
                 ];
+            } catch (Exception $e) {
+                $status = 404;
+                $data = [
+                    'message' => 'An error occured : ' . $e->getMessage(),
+                    'results' => [],
+                    'status' => 'error'
+                ];
+            }
+
+            return $response->withStatus($status)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write(json_encode($data));
+        });
+
+        /**
+         * Create a transaction category
+         * @todo Add authentification
+         */
+        $this->post('/transaction-categories', function ($request, $response, $args) use ($charcoalHelper) {
+            $status = 200;
+            $body = $request->getParsedBody();
+
+            $name = empty($body['name']) ? '' : $body['name'];
+
+            $error = false;
+
+            try {
+                if ($name === '') {
+                    throw new Exception('Empty name');
+                } else {
+
+
+                    // Here we test for existing category by name
+                    $transactionCategory = $charcoalHelper
+                        ->obj('budget/object/transaction-category')
+                        ->loadFrom('name', $name);
+
+                    if (!$transactionCategory->id()) {
+                        $transactionCategory = $charcoalHelper
+                            ->obj('budget/object/transaction-category')
+                            ->setData([
+                                'name' => $name
+                            ]);
+
+                        $message = 'New transaction category created';
+                        $transactionCategory->save();
+                    } else {
+                        $message = 'Existing category found';
+                    }
+
+                    $data = [
+                        'message' => $message,
+                        'results' => [
+                            $transactionCategory->publicData()
+                        ],
+                        'status' => 'ok'
+                    ];
+                }
             } catch (Exception $e) {
                 $status = 404;
                 $data = [

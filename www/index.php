@@ -65,7 +65,7 @@ $appContainer = new \Slim\Container([
         'displayErrorDetails' => true,
     ],
     'view' => function ($c) {
-        $view = new \Slim\Views\PhpRenderer('assets/templates');
+        $view = new \Slim\Views\PhpRenderer('assets/views');
         return $view;
     }
 ]);

@@ -1,309 +1,450 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
 'use strict';
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* jshint esnext: true */
+var _ractive = (typeof window !== "undefined" ? window['Ractive'] : typeof global !== "undefined" ? global['Ractive'] : null);
 
-
-var _environment = require('./utils/environment');
-
-var _ractiveTransitionsFade = require('./ractive/ractive-transitions-fade');
-
-var _ractiveTransitionsFade2 = _interopRequireDefault(_ractiveTransitionsFade);
+var _ractive2 = _interopRequireDefault(_ractive);
 
 var _ractiveLoad = require('./ractive/ractive-load');
 
 var _ractiveLoad2 = _interopRequireDefault(_ractiveLoad);
 
-var _ractiveEventsTap = require('./ractive/ractive-events-tap');
+var _ractive3 = require('./utils/ractive');
+
+var _ractive4 = _interopRequireDefault(_ractive3);
+
+var _ractiveTransitionsFade = require('./ractive/ractive-transitions-fade');
+
+var _ractiveTransitionsFade2 = _interopRequireDefault(_ractiveTransitionsFade);
+
+var _router = require('./plugins/router');
+
+var RouterPlugin = _interopRequireWildcard(_router);
+
+var _routes = require('./config/routes');
+
+var _routes2 = _interopRequireDefault(_routes);
+
+var _router2 = require('./components/layout/router');
+
+var _router3 = _interopRequireDefault(_router2);
+
+var _homePage = require('./components/home-page');
+
+var _homePage2 = _interopRequireDefault(_homePage);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function initApp(AppView) {
+    var App = new AppView({
+        el: '#app',
+        components: {
+            // SearchUser: SearchUserComponent,
+            Router: _router3.default,
+            EmptyPage: _ractive2.default.extend({ template: '' })
+        },
+        data: {
+            componentName: 'EmptyPage',
+            headerTitle: 'New transaction'
+        },
+        transitions: { fade: _ractiveTransitionsFade2.default },
+        oncomplete: function oncomplete() {
+            // Wait for the app to be rendered so we properly handle transition
+            // from EmptyPage to the one the URL dictates
+            RouterPlugin.init(_routes2.default, this.onNavigation.bind(this));
+            console.log('App::oninit# Application initialized!');
+        },
+        onNavigation: function onNavigation(error, navigationContext) {
+            console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
+            // console.log('APP::error', error);
+
+            if (error) {
+                console.warn('App::onNavigation# Error navigating:', error);
+                this.showAlert(error.displayMessage || error.message);
+            } else {
+                this.set({
+                    req: {
+                        params: navigationContext.params,
+                        body: navigationContext.state
+                    },
+                    componentName: navigationContext.pageName
+                });
+            }
+        },
+        showAlert: function showAlert(message) {
+            var _this = this;
+
+            this.set('errorMsg', message);
+            setTimeout(function () {
+                _this.set('errorMsg', null);
+            }, 2500);
+        }
+    });
+}
+
+(0, _ractiveLoad2.default)('assets/views/app.html').then(function (AppView) {
+    initApp(AppView);
+}).catch(_ractive4.default);
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./components/home-page":2,"./components/layout/router":3,"./config/routes":5,"./plugins/router":6,"./ractive/ractive-load":9,"./ractive/ractive-transitions-fade":10,"./utils/ractive":11}],2:[function(require,module,exports){
+(function (global){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = HomePage;
+
+var _ractive = (typeof window !== "undefined" ? window['Ractive'] : typeof global !== "undefined" ? global['Ractive'] : null);
+
+var _ractive2 = _interopRequireDefault(_ractive);
+
+var _ractiveLoad = require('../ractive/ractive-load');
+
+var _ractiveLoad2 = _interopRequireDefault(_ractiveLoad);
+
+var _ractive3 = require('../utils/ractive');
+
+var _ractive4 = _interopRequireDefault(_ractive3);
+
+var _create = require('./transaction/create');
+
+var _create2 = _interopRequireDefault(_create);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var component = (0, _create2.default)();
+
+function HomePage(HomeView) {
+    var Page = _ractive2.default.components.HomePage = HomeView.extend({
+        data: {
+            info: 'Hello world.'
+        },
+        components: {
+            CreateTransactionComponent: component
+        }
+    });
+    Page._name = 'HomePage';
+    return Page;
+}
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../ractive/ractive-load":9,"../utils/ractive":11,"./transaction/create":4}],3:[function(require,module,exports){
+(function (global){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _ractive = (typeof window !== "undefined" ? window['Ractive'] : typeof global !== "undefined" ? global['Ractive'] : null);
+
+var _ractive2 = _interopRequireDefault(_ractive);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*
+    This router has been built on top of the ideas from this Stack Overflow question:
+    http://stackoverflow.com/questions/31075341/how-to-create-ractives-subcomponents-dynamically-and-change-them-programmatical
+*/
+
+var Router = _ractive2.default.extend({
+    template: '<router-handler/>',
+    components: {
+        'router-handler': function routerHandler() {
+            return this.get('componentName');
+        }
+    },
+    oninit: function oninit() {
+        this.observe('componentName', function (newValue, oldValue) {
+            if (this.fragment.rendered) {
+                this.reset();
+            }
+        });
+    }
+});
+
+exports.default = Router;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = CreateTransactionComponent;
+
+var _ractiveLoad = require('../../ractive/ractive-load');
+
+var _ractiveLoad2 = _interopRequireDefault(_ractiveLoad);
+
+var _ractive = require('../../utils/ractive');
+
+var _ractive2 = _interopRequireDefault(_ractive);
+
+var _ractiveEventsTap = require('../../ractive/ractive-events-tap');
 
 var _ractiveEventsTap2 = _interopRequireDefault(_ractiveEventsTap);
 
-var _ractiveDecoratorsSelect = require('./ractive/ractive-decorators-select2');
+var _ractiveTransitionsFade = require('../../ractive/ractive-transitions-fade');
+
+var _ractiveTransitionsFade2 = _interopRequireDefault(_ractiveTransitionsFade);
+
+var _ractiveDecoratorsSelect = require('../../ractive/ractive-decorators-select2');
 
 var _ractiveDecoratorsSelect2 = _interopRequireDefault(_ractiveDecoratorsSelect);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 //@shame
 
-var App = function () {
-    function App() {
-        var _this2 = this;
+/**
+ * Transaction model
+ * @param  {object}  params  Initial values for the model
+ * @return {object}          Transaction model
+ *
+ * Model properties
+ * @param {boolean}  type          Expense (false) or income (true)
+ * @param {number}   amount        Positive amount
+ * @param {string}   category      Category ident
+ * @param {string}   creationDate  YYYY-MM-DD format
+ * @param {string}   description   Description
+ */
+function getTransactionModel(params) {
+    var defaults = {
+        type: 0,
+        amount: '',
+        category: null,
+        creationDate: '',
+        description: ''
+    };
+    return $.extend(defaults, params);
+}
 
-        _classCallCheck(this, App);
+function CreateTransactionComponent() {
+    return Ractive.extend({});
+    (0, _ractiveLoad2.default)('assets/views/transaction/create.html').then(function (CreateTransactionView) {
+        return new CreateTransactionView({
+            data: {
+                transactionCategories: []
+            },
+            events: { tap: _ractiveEventsTap2.default },
+            transitions: { fade: _ractiveTransitionsFade2.default },
 
-        /* Prepare decorators */
-        this.prepareDecorators();
+            /**
+             * Load transaction categories
+             */
+            loadCategories: function loadCategories() {
+                var _this = this;
 
-        /* Load template parts */
-        (0, _ractiveLoad2.default)('assets/templates/NewTransaction.html').then(function (NewTransactionView) {
-            _this2.newTransactionController = _this2.initNewTransactionController(NewTransactionView);
-        }).catch(this.ractiveLoadCatch);
+                $.ajax({
+                    method: 'GET',
+                    url: '/api/v1/transaction-categories',
+                    data: {}
+                }).done(function (response) {
+                    if (response.status === 'ok') {
+                        _this.set('transactionCategories', response.results);
+                    }
+                }).fail(function () {
+                    console.log('Error');
+                }).always(function () {});
+            },
 
-        (0, _ractiveLoad2.default)('assets/templates/RecentTransactions.html').then(function (RecentTransactionsView) {
-            _this2.recentTransactionsController = _this2.initRecentTransactionsController(RecentTransactionsView);
-        }).catch(this.ractiveLoadCatch);
-    }
+            /**
+             * Allows us to set proxy events and run other tasks when controller is initialized
+             * @param  {array}  options  Array of options
+             */
+            oninit: function oninit(options) {
+                this.loadCategories();
 
-    /**
-     * Transaction model
-     * @param  {object}  params  Initial values for the model
-     * @return {object}          Transaction model
-     *
-     * Model properties
-     * @param {boolean}  type          Expense (false) or income (true)
-     * @param {number}   amount        Positive amount
-     * @param {string}   category      Category ident
-     * @param {string}   creationDate  YYYY-MM-DD format
-     * @param {string}   description   Description
-     */
+                /* Proxy events */
+                this.on({
+                    /**
+                     * Event triggered when new transaction form is submitted
+                     * Extracts data from the form and submits it to API
+                     * @param  {object}  event  Ractive event object
+                     */
+                    submitTransaction: function submitTransaction(event) {
+                        var _this2 = this;
 
+                        // Prevent the page from reloading
+                        event.original.preventDefault();
 
-    _createClass(App, [{
-        key: 'getTransactionModel',
-        value: function getTransactionModel(params) {
-            var defaults = {
-                type: 0,
-                amount: '',
-                category: null,
-                creationDate: '',
-                description: ''
-            };
-            return $.extend(defaults, params);
-        }
+                        var transactionModel = getTransactionModel({
+                            type: this.get('type'),
+                            amount: this.get('amount'),
+                            category: this.get('category'),
+                            creationDate: this.get('creationDate'),
+                            description: this.get('description')
+                        });
 
-        /**
-         * This controller is used for creating new transactions
-         * Allows communication between the form and the API
-         * @param  {Ractive Object} NewTransactionView  Constructor that extends Ractive
-         *                                              i.e. NewTransactionView = Ractive.extend({...})
-         * @return {Ractive Object} controller          Ractive instance
-         */
+                        console.log('Saving to server...', transactionModel);
 
-    }, {
-        key: 'initNewTransactionController',
-        value: function initNewTransactionController(NewTransactionView) {
-            var _this = this;
-            var controller = new NewTransactionView({
-                el: '#newTransaction',
-                data: {
-                    headerTitle: 'New transaction',
-                    transactionCategories: []
-                },
-                events: { tap: _ractiveEventsTap2.default },
-                transitions: { fade: _ractiveTransitionsFade2.default },
+                        // Send the data to our API
+                        $.ajax({
+                            method: 'POST',
+                            url: '/api/v1/transactions',
+                            data: transactionModel
+                        }).done(function (response) {
+                            if (response.status === 'ok') {
+                                // Push the new transaction to the recent transaction list
+                                var transaction = response.results.shift();
+                                if (typeof transaction !== 'undefined') {
+                                    // _this.recentTransactionsController.push('transactions', transaction);
 
-                /**
-                 * Load transaction categories
-                 */
-                loadCategories: function loadCategories() {
-                    var _this3 = this;
-
-                    $.ajax({
-                        method: 'GET',
-                        url: '/api/v1/transaction-categories',
-                        data: {}
-                    }).done(function (response) {
-                        if (response.status === 'ok') {
-                            _this3.set('transactionCategories', response.results);
-                        }
-                    }).fail(function () {
-                        console.log('Error');
-                    }).always(function () {});
-                },
-
-                /**
-                 * Allows us to set proxy events and run other tasks when controller is initialized
-                 * @param  {array}  options  Array of options
-                 */
-                oninit: function oninit(options) {
-                    this.loadCategories();
-
-                    /* Proxy events */
-                    this.on({
-                        /**
-                         * Event triggered when new transaction form is submitted
-                         * Extracts data from the form and submits it to API
-                         * @param  {object}  event  Ractive event object
-                         */
-                        submitTransaction: function submitTransaction(event) {
-                            var _this4 = this;
-
-                            // Prevent the page from reloading
-                            event.original.preventDefault();
-
-                            var transactionModel = _this.getTransactionModel({
-                                type: this.get('type'),
-                                amount: this.get('amount'),
-                                category: this.get('category'),
-                                creationDate: this.get('creationDate'),
-                                description: this.get('description')
-                            });
-
-                            console.log('Saving to server...', transactionModel);
-
-                            // Send the data to our API
-                            $.ajax({
-                                method: 'POST',
-                                url: '/api/v1/transactions',
-                                data: transactionModel
-                            }).done(function (response) {
-                                if (response.status === 'ok') {
-                                    // Push the new transaction to the recent transaction list
-                                    var transaction = response.results.shift();
-                                    if (typeof transaction !== 'undefined') {
-                                        _this.recentTransactionsController.push('transactions', transaction);
-
-                                        // We also update the category list in case of a new creation
-                                        _this4.loadCategories();
-                                    }
-
-                                    // Reset the form
-                                    document.activeElement.blur();
-                                    $('.valid').removeClass('valid');
-
-                                    _this4.set({
-                                        type: 0,
-                                        amount: '',
-                                        category: null,
-                                        timestamp: '',
-                                        description: ''
-                                    });
+                                    // We also update the category list in case of a new creation
+                                    _this2.loadCategories();
                                 }
-                            }).fail(function () {
-                                console.log('Error');
-                            }).always(function () {
-                                console.log('Finished');
-                            });
-                        }
-                    });
-                }
-            });
-            return controller;
-        }
 
-        /**
-         * This controller is displays recent transactions in a list
-         * @param  {Ractive Object} RecentTransactionsView  Constructor that extends Ractive
-         * @return {Ractive Object} controller              Ractive instance
-         */
+                                // Reset the form
+                                document.activeElement.blur();
+                                $('.valid').removeClass('valid');
 
-    }, {
-        key: 'initRecentTransactionsController',
-        value: function initRecentTransactionsController(RecentTransactionsView) {
-            var _this = this;
-            var controller = new RecentTransactionsView({
-                el: '#recentTransactions',
-                data: {
-                    transactions: [],
-                    sortColumn: 'creationDate'
-                },
-                computed: {
-                    sortedTransactions: function sortedTransactions() {
-                        var column = this.get('sortColumn');
-                        return this.get('transactions').slice().sort(function (a, b) {
-                            return a[column] < b[column] ? 1 : -1;
+                                _this2.set({
+                                    type: 0,
+                                    amount: '',
+                                    category: null,
+                                    timestamp: '',
+                                    description: ''
+                                });
+                            }
+                        }).fail(function () {
+                            console.log('Error');
+                        }).always(function () {
+                            console.log('Finished');
                         });
                     }
-                },
-                events: { tap: _ractiveEventsTap2.default },
-                transitions: { fade: _ractiveTransitionsFade2.default },
+                });
+            }
+        });
+    }).catch(_ractive2.default);
+}
 
-                /**
-                 * Allows us to set proxy events and run other tasks when controller is initialized
-                 * @param  {array}  options  Array of options
-                 */
-                oninit: function oninit(options) {
-                    var _this5 = this;
+// var SearchGithub = Ractive.extend({
+//     isolated: true,
+//     template: Template,
 
-                    console.log('Loading recent transactions');
+//     oninit() {
+//         this.on('searchUser', (rEvent) => {
+//             rEvent.original.preventDefault();
+//             router.navTo(`/user/${rEvent.context.query}`);
+//             this.set('query', '');
+//         });
+//     },
 
-                    /* Load most recent transactions */
-                    $.ajax({
-                        method: 'GET',
-                        url: '/api/v1/transactions',
-                        data: {
-                            count: 5
-                        }
-                    }).done(function (response) {
-                        if (response.status === 'ok') {
-                            _this5.set('transactions', response.results);
-                        }
-                    }).fail(function () {
-                        console.log('Error');
-                    }).always(function () {
-                        console.log('Finished');
-                    });
+//     data: {
+//         query: ''
+//     }
+// });
 
-                    /* Proxy events */
-                    this.on({
-                        /**
-                         * Sets the sorting column
-                         * @param  {object}  event   Ractive event object
-                         * @param  {object}  column  Column ident
-                         */
-                        sort: function sort(event, column) {
-                            _this5.set('sortColumn', column);
-                        }
-                    });
-                }
-            });
-            return controller;
-        }
+// export default SearchGithub;
 
-        /**
-         * Decorators need to be in Ractive before any templates are loaded
-         */
+},{"../../ractive/ractive-decorators-select2":7,"../../ractive/ractive-events-tap":8,"../../ractive/ractive-load":9,"../../ractive/ractive-transitions-fade":10,"../../utils/ractive":11}],5:[function(require,module,exports){
+'use strict';
 
-    }, {
-        key: 'prepareDecorators',
-        value: function prepareDecorators() {
-            window.Ractive.decorators.select2.type.transactionCategories = function (node) {
-                /* Select2 options */
-                return {
-                    createTag: function createTag(params) {
-                        var term = $.trim(params.term);
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
-                        if (term === '') {
-                            return null;
-                        }
+var _ractiveLoad = require('../ractive/ractive-load');
 
-                        return {
-                            id: term,
-                            text: term,
-                            newTag: true
-                        };
-                    },
-                    placeholder: 'Select a category',
-                    tags: true,
-                    tokenSeparators: [',']
-                };
-            };
-        }
+var _ractiveLoad2 = _interopRequireDefault(_ractiveLoad);
 
-        /**
-         * Catches Ractive Load errors
-         * The setTimeout ensures the error doesn't get swallowed (this can be a problem with promises...)
-         * @param  {Object} err
-         */
+var _ractive = require('../utils/ractive');
 
-    }, {
-        key: 'ractiveLoadCatch',
-        value: function ractiveLoadCatch(err) {
-            setTimeout(function () {
-                throw err;
-            });
-        }
-    }]);
+var _ractive2 = _interopRequireDefault(_ractive);
 
-    return App;
-}();
+var _router = require('../plugins/router');
 
-window.App = new App();
+var _router2 = _interopRequireDefault(_router);
 
-},{"./ractive/ractive-decorators-select2":2,"./ractive/ractive-events-tap":3,"./ractive/ractive-load":4,"./ractive/ractive-transitions-fade":5,"./utils/environment":6}],2:[function(require,module,exports){
+var _homePage = require('../components/home-page');
+
+var _homePage2 = _interopRequireDefault(_homePage);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// import UserPage from '../components/user-page';
+// import UserModel from '../models/user';
+
+var routes = new Map();
+
+routes.set('/', function (context, next) {
+    (0, _ractiveLoad2.default)('assets/views/home-page.html').then(function (HomeView) {
+        next(null, (0, _homePage2.default)(HomeView));
+    }).catch(_ractive2.default);
+});
+
+// routes.set('/user/:username', (context, next) => {
+//     UserModel.findByName(context.params.username)
+//         .then((user) => {
+//             next(null, UserPage, {
+//                 user: user
+//             });
+//         })
+//         .catch((err) => {
+//             err.displayMessage = 'User data not found!';
+//             next(err);
+//         });
+// });
+
+exports.default = routes;
+
+},{"../components/home-page":2,"../plugins/router":6,"../ractive/ractive-load":9,"../utils/ractive":11}],6:[function(require,module,exports){
+(function (global){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.init = init;
+exports.navTo = navTo;
+
+var _page = (typeof window !== "undefined" ? window['page'] : typeof global !== "undefined" ? global['page'] : null);
+
+var _page2 = _interopRequireDefault(_page);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function navigationHandler(routeHandler, onNavigation) {
+    return function (context /*, next*/) {
+        routeHandler(context, function (error) {
+            var PageComponent = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+            var data = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+            // if (!error && !Ractive.components[PageComponent._name]) { // I'm not proud of this
+            //  Ractive.components[PageComponent._name] = PageComponent;
+            // }
+
+            context.pageName = PageComponent._name;
+            context.state = data;
+            onNavigation(error, context);
+        });
+    };
+}
+
+function init(routes, onNavigation) {
+
+    routes.forEach(function (routeHandler, path) {
+        (0, _page2.default)(path, navigationHandler(routeHandler, onNavigation));
+    });
+
+    (0, _page2.default)({
+        hashbang: true
+    });
+}
+
+function navTo(url) {
+    _page2.default.show(url);
+}
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],7:[function(require,module,exports){
 'use strict';
 
 /*
@@ -421,7 +562,7 @@ window.App = new App();
     Ractive.decorators.select2 = _select2Decorator;
 });
 
-},{}],3:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -628,7 +769,7 @@ function handleKeydown(event) {
 
 exports.default = tap;
 
-},{}],4:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (process,Buffer){
 'use strict';
 
@@ -1445,7 +1586,7 @@ load.modules = {};
 exports.default = load;
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"_process":12,"buffer":9,"fs":8}],5:[function(require,module,exports){
+},{"_process":17,"buffer":14,"fs":13}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1474,23 +1615,27 @@ function fade(t, params) {
 
 exports.default = fade;
 
-},{}],6:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
-var $document = $(document);
-var $window = $(window);
-var $html = $(document.documentElement);
-var $body = $(document.body);
 
-exports.$document = $document;
-exports.$window = $window;
-exports.$html = $html;
-exports.$body = $body;
+/**
+ * Catches Ractive Load errors
+ * The setTimeout ensures the error doesn't get swallowed (this can be a problem with promises...)
+ * @param  {Object} err
+ */
+function ractiveLoadCatch(err) {
+    setTimeout(function () {
+        throw err;
+    });
+}
 
-},{}],7:[function(require,module,exports){
+exports.ractiveLoadCatch = ractiveLoadCatch;
+
+},{}],12:[function(require,module,exports){
 'use strict'
 
 exports.toByteArray = toByteArray
@@ -1601,9 +1746,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],8:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 
-},{}],9:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -3318,7 +3463,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":7,"ieee754":10,"isarray":11}],10:[function(require,module,exports){
+},{"base64-js":12,"ieee754":15,"isarray":16}],15:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -3404,14 +3549,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],11:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],12:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

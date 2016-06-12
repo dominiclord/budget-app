@@ -22,6 +22,7 @@
   },
   "browserify-shim": {
     "jquery": "global:jQuery",
+    "page": "global:page",
     "ractive": "global:Ractive"
   }
 }

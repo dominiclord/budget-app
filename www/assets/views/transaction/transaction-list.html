@@ -23,7 +23,7 @@
                 {{#sortedTransactions}}
                     <tr intro="fade:{delay:{800 + (i * 100)}}">
                         <td><span style="color: {{ (type == 1) ? 'green' : 'red' }};">{{amount}}</span></td>
-                        <td>{{category.name}}</td>
+                        <td><a href="/transaction/{{id}}">{{category.name}}</a></td>
                         <td>{{creationDate}}</td>
                     </tr>
                 {{/sortedTransactions}}

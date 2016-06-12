@@ -31,10 +31,10 @@ function initApp(AppView) {
             // Wait for the app to be rendered so we properly handle transition
             // from EmptyPage to the one the URL dictates
             RouterPlugin.init(routesConfiguration, this.onNavigation.bind(this));
-            // console.log('App::oninit# Application initialized!');
+            console.log('App::oninit# Application initialized!');
         },
         onNavigation(error, navigationContext) {
-            // console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
+            console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
 
             if (error) {
                 console.warn('App::onNavigation# Error navigating:', error);

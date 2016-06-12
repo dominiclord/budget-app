@@ -78,11 +78,6 @@ $budgetApp->get('/build', function () use ($charcoalHelper) {
     $charcoalHelper->collection('budget/object/transaction-category')->source()->createTable();
 });
 
-/** Simple, catchall routing for prototyping. */
-$budgetApp->get('/[{foo}]', function ($request, $response, $args) use ($charcoalHelper) {
-    return $this->view->render($response, '/index.html', $args);
-});
-
 /*
 =============================
 
@@ -450,5 +445,15 @@ $budgetApp->group('/api', function () use ($charcoalHelper) {
     });
 
 });
+
+/** Simple, catchall routing for front-end MVC framwork. */
+// $budgetApp->get('/.*', function ($request, $response, $args) use ($charcoalHelper) {
+// $budgetApp->get('/[{foo}]', function ($request, $response, $args) use ($charcoalHelper) {
+$budgetApp->get('/[{path:.*}]', function ($request, $response, $args) use ($charcoalHelper) {
+    return $this->view->render($response, '/index.html', $args);
+});
+// })->conditions([
+//     'method' => '.+'
+// ]);
 
 $budgetApp->run();

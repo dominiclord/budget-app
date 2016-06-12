@@ -1,0 +1,21 @@
+<div class="row" intro="fade:{delay:{200}}">
+    <div class="col s12">
+        <div class="col s12">
+            <h4>Transaction details</h4>
+        </div>
+        <div class="col s12">
+            {{#transaction}}
+            <ul>
+                <li><strong>ID:</strong> {{id}}</li>
+                <li><strong>Amount:</strong> <span style="color: {{ (type == 1) ? 'green' : 'red' }};">{{amount}}$</span></li>
+                <li><strong>Category:</strong> {{category.name}}</li>
+                <li><strong>Transaction date:</strong> {{creationDate}}</li>
+                <li>
+                    <strong>Description:</strong><br>
+                    <p>{{description}}</p>
+                </li>
+            </ul>
+            {{/transactions}}
+        </div>
+    </div>
+</div>

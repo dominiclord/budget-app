@@ -55,10 +55,10 @@ function initApp(AppView) {
             // Wait for the app to be rendered so we properly handle transition
             // from EmptyPage to the one the URL dictates
             RouterPlugin.init(_routes2.default, this.onNavigation.bind(this));
-            // console.log('App::oninit# Application initialized!');
+            console.log('App::oninit# Application initialized!');
         },
         onNavigation: function onNavigation(error, navigationContext) {
-            // console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
+            console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
 
             if (error) {
                 console.warn('App::onNavigation# Error navigating:', error);
@@ -85,7 +85,7 @@ function initApp(AppView) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./components/layout/router":3,"./config/routes":7,"./plugins/router":8,"./ractive/ractive-load":11,"./ractive/ractive-transitions-fade":12,"./utils/ractive":13}],2:[function(require,module,exports){
+},{"./components/layout/router":3,"./config/routes":9,"./plugins/router":10,"./ractive/ractive-load":13,"./ractive/ractive-transitions-fade":14,"./utils/ractive":15}],2:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -155,7 +155,7 @@ function createComponent(HomeView) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../ractive/ractive-load":11,"../utils/ractive":13,"./transaction/new-transaction":5,"./transaction/transaction-list":6}],3:[function(require,module,exports){
+},{"../ractive/ractive-load":13,"../utils/ractive":15,"./transaction/new-transaction":6,"./transaction/transaction-list":8}],3:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -250,7 +250,66 @@ function createComponent(ListView) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../ractive/ractive-load":11,"../utils/ractive":13,"./transaction/transaction-list":6}],5:[function(require,module,exports){
+},{"../ractive/ractive-load":13,"../utils/ractive":15,"./transaction/transaction-list":8}],5:[function(require,module,exports){
+(function (global){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.loadDependencies = loadDependencies;
+exports.createComponent = createComponent;
+
+var _ractive = (typeof window !== "undefined" ? window['Ractive'] : typeof global !== "undefined" ? global['Ractive'] : null);
+
+var _ractive2 = _interopRequireDefault(_ractive);
+
+var _ractiveLoad = require('../ractive/ractive-load');
+
+var _ractiveLoad2 = _interopRequireDefault(_ractiveLoad);
+
+var _ractive3 = require('../utils/ractive');
+
+var _ractive4 = _interopRequireDefault(_ractive3);
+
+var _transactionDetails = require('./transaction/transaction-details');
+
+var TransactionPage = _interopRequireWildcard(_transactionDetails);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var TransactionDetailsComponent;
+
+var Promise = _ractive2.default.Promise;
+
+function loadDependencies(options) {
+    return new Promise(function (fulfil, reject) {
+        (0, _ractiveLoad2.default)({
+            TransactionDetailsView: 'assets/views/transaction/transaction-details.html'
+        }).then(function (components) {
+            TransactionDetailsComponent = TransactionPage.createComponent(components.TransactionDetailsView, {
+                id: options.id
+            });
+            fulfil();
+        }).catch(_ractive4.default);
+    });
+}
+
+function createComponent(TransactionView) {
+    var Page = _ractive2.default.components.TransactionPage = TransactionView.extend({
+        data: {},
+        components: {
+            TransactionDetailsComponent: TransactionDetailsComponent
+        }
+    });
+    Page._name = 'TransactionPage';
+    return Page;
+}
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../ractive/ractive-load":13,"../utils/ractive":15,"./transaction/transaction-details":7}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -422,7 +481,71 @@ function createComponent(NewTransactionView) {
     return Component;
 }
 
-},{"../../ractive/ractive-decorators-select2":9,"../../ractive/ractive-transitions-fade":12}],6:[function(require,module,exports){
+},{"../../ractive/ractive-decorators-select2":11,"../../ractive/ractive-transitions-fade":14}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.createComponent = createComponent;
+
+var _ractiveTransitionsFade = require('../../ractive/ractive-transitions-fade');
+
+var _ractiveTransitionsFade2 = _interopRequireDefault(_ractiveTransitionsFade);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// Default component options and dataset
+var defaultViewOptions = {
+    id: '',
+    data: {
+        transaction: []
+    }
+};
+
+function createComponent(TransactionDetailsView, parentViewOptions) {
+    // Merging default component options with parent supplied options
+    var viewOptions = $.extend(true, {}, defaultViewOptions, parentViewOptions);
+
+    var Component = Ractive.components.TransactionDetails = TransactionDetailsView.extend({
+        data: function data() {
+            return viewOptions.data;
+        },
+        transitions: { fade: _ractiveTransitionsFade2.default },
+
+        /**
+         * Allows us to set proxy events and run other tasks when controller is initialized
+         * @param  {array}  options  Array of options
+         */
+        oninit: function oninit(options) {
+            var _this = this;
+
+            console.log('Loading transaction');
+
+            /* Load most recent transactions */
+            $.ajax({
+                method: 'GET',
+                url: '/api/v1/transactions/' + viewOptions.id,
+                data: {}
+            }).done(function (response) {
+                if (response.status === 'ok') {
+                    _this.set('transaction', response.results);
+                }
+            }).fail(function () {
+                console.log('Error');
+            }).always(function () {
+                console.log('Finished');
+            });
+
+            /* Proxy events */
+            this.on({});
+        }
+    });
+    Component._name = 'TransactionDetails';
+    return Component;
+}
+
+},{"../../ractive/ractive-transitions-fade":14}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -512,7 +635,7 @@ function createComponent(TransactionListView, parentViewOptions) {
     return Component;
 }
 
-},{"../../ractive/ractive-events-tap":10,"../../ractive/ractive-transitions-fade":12}],7:[function(require,module,exports){
+},{"../../ractive/ractive-events-tap":12,"../../ractive/ractive-transitions-fade":14}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -539,6 +662,10 @@ var _listPage = require('../components/list-page');
 
 var ListPage = _interopRequireWildcard(_listPage);
 
+var _TransactionPage = require('../components/Transaction-page');
+
+var TransactionPage = _interopRequireWildcard(_TransactionPage);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -564,6 +691,17 @@ routes.set('/list', function (context, next) {
     }).catch(_ractive2.default);
 });
 
+routes.set('/transaction/:id', function (context, next) {
+    var id = context.params.id;
+    (0, _ractiveLoad2.default)('assets/views/transaction-page.html').then(function (TransactionView) {
+        TransactionPage.loadDependencies({
+            id: id
+        }).then(function () {
+            next(null, TransactionPage.createComponent(TransactionView));
+        });
+    }).catch(_ractive2.default);
+});
+
 // routes.set('/user/:username', (context, next) => {
 //     UserModel.findByName(context.params.username)
 //         .then((user) => {
@@ -579,7 +717,7 @@ routes.set('/list', function (context, next) {
 
 exports.default = routes;
 
-},{"../components/home-page":2,"../components/list-page":4,"../plugins/router":8,"../ractive/ractive-load":11,"../utils/ractive":13}],8:[function(require,module,exports){
+},{"../components/Transaction-page":5,"../components/home-page":2,"../components/list-page":4,"../plugins/router":10,"../ractive/ractive-load":13,"../utils/ractive":15}],10:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -628,7 +766,7 @@ function navTo(url) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 /*
@@ -746,7 +884,7 @@ function navTo(url) {
     Ractive.decorators.select2 = _select2Decorator;
 });
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -953,7 +1091,7 @@ function handleKeydown(event) {
 
 exports.default = tap;
 
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (process,Buffer){
 'use strict';
 
@@ -1770,7 +1908,7 @@ load.modules = {};
 exports.default = load;
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"_process":19,"buffer":16,"fs":15}],12:[function(require,module,exports){
+},{"_process":21,"buffer":18,"fs":17}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1799,7 +1937,7 @@ function fade(t, params) {
 
 exports.default = fade;
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1819,7 +1957,7 @@ function ractiveLoadCatch(err) {
 
 exports.ractiveLoadCatch = ractiveLoadCatch;
 
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict'
 
 exports.toByteArray = toByteArray
@@ -1930,9 +2068,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -3647,7 +3785,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":14,"ieee754":17,"isarray":18}],17:[function(require,module,exports){
+},{"base64-js":16,"ieee754":19,"isarray":20}],19:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -3733,14 +3871,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

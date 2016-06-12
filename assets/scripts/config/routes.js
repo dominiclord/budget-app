@@ -5,6 +5,7 @@ import router from '../plugins/router';
 
 import * as HomePage from '../components/home-page';
 import * as ListPage from '../components/list-page';
+import * as TransactionPage from '../components/Transaction-page';
 
 // import UserPage from '../components/user-page';
 // import UserModel from '../models/user';
@@ -23,6 +24,17 @@ routes.set('/list', (context, next) => {
     load('assets/views/list-page.html').then((ListView) => {
         ListPage.loadDependencies().then(() => {
             next(null, ListPage.createComponent(ListView));
+        });
+    }).catch(ractiveLoadCatch);
+});
+
+routes.set('/transaction/:id', (context, next) => {
+    let id = context.params.id;
+    load('assets/views/transaction-page.html').then((TransactionView) => {
+        TransactionPage.loadDependencies({
+            id: id
+        }).then(() => {
+            next(null, TransactionPage.createComponent(TransactionView));
         });
     }).catch(ractiveLoadCatch);
 });

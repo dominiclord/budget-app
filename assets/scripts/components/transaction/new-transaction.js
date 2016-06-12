@@ -21,7 +21,7 @@ function getTransactionModel(params) {
         creationDate: '',
         description: ''
     };
-    return $.extend(defaults, params);
+    return $.extend({}, defaults, params);
 }
 
 /**

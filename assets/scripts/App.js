@@ -9,7 +9,6 @@ import * as RouterPlugin from './plugins/router';
 import routesConfiguration from './config/routes';
 
 import RouterComponent from './components/layout/router';
-import HomePageComponent from './components/home-page';
 
 load('assets/views/app.html').then((AppView) => {
     initApp(AppView);
@@ -25,18 +24,17 @@ function initApp(AppView) {
         },
         data: {
             componentName: 'EmptyPage',
-            headerTitle: 'New transaction'
+            headerTitle: 'Budget App'
         },
         transitions: { fade },
         oncomplete() {
             // Wait for the app to be rendered so we properly handle transition
             // from EmptyPage to the one the URL dictates
             RouterPlugin.init(routesConfiguration, this.onNavigation.bind(this));
-            console.log('App::oninit# Application initialized!');
+            // console.log('App::oninit# Application initialized!');
         },
         onNavigation(error, navigationContext) {
-            console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
-            // console.log('APP::error', error);
+            // console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
 
             if (error) {
                 console.warn('App::onNavigation# Error navigating:', error);

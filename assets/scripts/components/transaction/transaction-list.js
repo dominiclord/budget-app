@@ -1,14 +1,23 @@
 import tap from '../../ractive/ractive-events-tap';
 import fade from '../../ractive/ractive-transitions-fade';
 
-export function createComponent(RecentTransactionsView) {
+// Default component options and dataset
+var defaultViewOptions = {
+    count: 20, // @todo Currently loads most recent 20, integrate paging eventually
+    data: {
+        sortColumn: 'creationDate',
+        transactions: [],
+        transactionListTitle: 'Transaction list'
+    }
+}
 
-    var Component = Ractive.components.RecentTransactions = RecentTransactionsView.extend({
+export function createComponent(TransactionListView, parentViewOptions) {
+    // Merging default component options with parent supplied options
+    var viewOptions = $.extend(true, {}, defaultViewOptions, parentViewOptions);
+
+    var Component = Ractive.components.TransactionList = TransactionListView.extend({
         data: function () {
-            return {
-                transactions: [],
-                sortColumn: 'creationDate'
-            }
+            return viewOptions.data;
         },
         computed: {
             sortedTransactions: function() {
@@ -26,14 +35,14 @@ export function createComponent(RecentTransactionsView) {
          * @param  {array}  options  Array of options
          */
         oninit: function(options) {
-            console.log('Loading recent transactions');
+            console.log('Loading transactions');
 
             /* Load most recent transactions */
             $.ajax({
                 method: 'GET',
                 url: '/api/v1/transactions',
                 data: {
-                    count: 5
+                    count: viewOptions.count
                 }
             })
             .done((response) => {
@@ -61,6 +70,6 @@ export function createComponent(RecentTransactionsView) {
             });
         }
     });
-    Component._name = 'RecentTransactions';
+    Component._name = 'TransactionList';
     return Component;
 }

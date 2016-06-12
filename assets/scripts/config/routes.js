@@ -4,6 +4,7 @@ import ractiveLoadCatch from '../utils/ractive';
 import router from '../plugins/router';
 
 import * as HomePage from '../components/home-page';
+import * as ListPage from '../components/list-page';
 
 // import UserPage from '../components/user-page';
 // import UserModel from '../models/user';
@@ -12,8 +13,16 @@ var routes = new Map();
 
 routes.set('/', (context, next) => {
     load('assets/views/home-page.html').then((HomeView) => {
-        HomePage.loadDependencies(HomeView).then(function() {
+        HomePage.loadDependencies().then(() => {
             next(null, HomePage.createComponent(HomeView));
+        });
+    }).catch(ractiveLoadCatch);
+});
+
+routes.set('/list', (context, next) => {
+    load('assets/views/list-page.html').then((ListView) => {
+        ListPage.loadDependencies().then(() => {
+            next(null, ListPage.createComponent(ListView));
         });
     }).catch(ractiveLoadCatch);
 });

@@ -21,7 +21,7 @@ export function init(routes, onNavigation) {
     });
 
     page({
-        hashbang: true
+        // hashbang: true
     });
 }
 

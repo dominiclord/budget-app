@@ -30,10 +30,6 @@ var _router2 = require('./components/layout/router');
 
 var _router3 = _interopRequireDefault(_router2);
 
-var _homePage = require('./components/home-page');
-
-var _homePage2 = _interopRequireDefault(_homePage);
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -52,18 +48,17 @@ function initApp(AppView) {
         },
         data: {
             componentName: 'EmptyPage',
-            headerTitle: 'New transaction'
+            headerTitle: 'Budget App'
         },
         transitions: { fade: _ractiveTransitionsFade2.default },
         oncomplete: function oncomplete() {
             // Wait for the app to be rendered so we properly handle transition
             // from EmptyPage to the one the URL dictates
             RouterPlugin.init(_routes2.default, this.onNavigation.bind(this));
-            console.log('App::oninit# Application initialized!');
+            // console.log('App::oninit# Application initialized!');
         },
         onNavigation: function onNavigation(error, navigationContext) {
-            console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
-            // console.log('APP::error', error);
+            // console.log('APP::onNavigation# Navigating to:', navigationContext.pageName, 'with context:', navigationContext);
 
             if (error) {
                 console.warn('App::onNavigation# Error navigating:', error);
@@ -90,7 +85,7 @@ function initApp(AppView) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./components/home-page":2,"./components/layout/router":3,"./config/routes":6,"./plugins/router":7,"./ractive/ractive-load":10,"./ractive/ractive-transitions-fade":11,"./utils/ractive":12}],2:[function(require,module,exports){
+},{"./components/layout/router":3,"./config/routes":7,"./plugins/router":8,"./ractive/ractive-load":11,"./ractive/ractive-transitions-fade":12,"./utils/ractive":13}],2:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -116,27 +111,32 @@ var _newTransaction = require('./transaction/new-transaction');
 
 var NewTransaction = _interopRequireWildcard(_newTransaction);
 
-var _recentTransactions = require('./transaction/recent-transactions');
+var _transactionList = require('./transaction/transaction-list');
 
-var RecentTransactions = _interopRequireWildcard(_recentTransactions);
+var TransactionList = _interopRequireWildcard(_transactionList);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var NewTransactionComponent;
-var RecentTransactionsComponent;
+var TransactionListComponent;
 
 var Promise = _ractive2.default.Promise;
 
-function loadDependencies(HomeView) {
+function loadDependencies() {
     return new Promise(function (fulfil, reject) {
         (0, _ractiveLoad2.default)({
             NewTransactionView: 'assets/views/transaction/new-transaction.html',
-            RecentTransactionsView: 'assets/views/transaction/recent-transactions.html'
+            TransactionListView: 'assets/views/transaction/transaction-list.html'
         }).then(function (components) {
             NewTransactionComponent = NewTransaction.createComponent(components.NewTransactionView);
-            RecentTransactionsComponent = RecentTransactions.createComponent(components.RecentTransactionsView);
+            TransactionListComponent = TransactionList.createComponent(components.TransactionListView, {
+                count: 5,
+                data: {
+                    transactionListTitle: 'Recent transactions'
+                }
+            });
             fulfil();
         }).catch(_ractive4.default);
     });
@@ -144,12 +144,10 @@ function loadDependencies(HomeView) {
 
 function createComponent(HomeView) {
     var Page = _ractive2.default.components.HomePage = HomeView.extend({
-        data: {
-            info: 'Hello world.'
-        },
+        data: {},
         components: {
             NewTransactionComponent: NewTransactionComponent,
-            RecentTransactionsComponent: RecentTransactionsComponent
+            TransactionListComponent: TransactionListComponent
         }
     });
     Page._name = 'HomePage';
@@ -157,7 +155,7 @@ function createComponent(HomeView) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../ractive/ractive-load":10,"../utils/ractive":12,"./transaction/new-transaction":4,"./transaction/recent-transactions":5}],3:[function(require,module,exports){
+},{"../ractive/ractive-load":11,"../utils/ractive":13,"./transaction/new-transaction":5,"./transaction/transaction-list":6}],3:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -196,6 +194,63 @@ exports.default = Router;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],4:[function(require,module,exports){
+(function (global){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.loadDependencies = loadDependencies;
+exports.createComponent = createComponent;
+
+var _ractive = (typeof window !== "undefined" ? window['Ractive'] : typeof global !== "undefined" ? global['Ractive'] : null);
+
+var _ractive2 = _interopRequireDefault(_ractive);
+
+var _ractiveLoad = require('../ractive/ractive-load');
+
+var _ractiveLoad2 = _interopRequireDefault(_ractiveLoad);
+
+var _ractive3 = require('../utils/ractive');
+
+var _ractive4 = _interopRequireDefault(_ractive3);
+
+var _transactionList = require('./transaction/transaction-list');
+
+var TransactionList = _interopRequireWildcard(_transactionList);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var TransactionListComponent;
+
+var Promise = _ractive2.default.Promise;
+
+function loadDependencies() {
+    return new Promise(function (fulfil, reject) {
+        (0, _ractiveLoad2.default)({
+            TransactionListView: 'assets/views/transaction/transaction-list.html'
+        }).then(function (components) {
+            TransactionListComponent = TransactionList.createComponent(components.TransactionListView, {});
+            fulfil();
+        }).catch(_ractive4.default);
+    });
+}
+
+function createComponent(ListView) {
+    var Page = _ractive2.default.components.ListPage = ListView.extend({
+        data: {},
+        components: {
+            TransactionListComponent: TransactionListComponent
+        }
+    });
+    Page._name = 'ListPage';
+    return Page;
+}
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../ractive/ractive-load":11,"../utils/ractive":13,"./transaction/transaction-list":6}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -235,7 +290,7 @@ function getTransactionModel(params) {
         creationDate: '',
         description: ''
     };
-    return $.extend(defaults, params);
+    return $.extend({}, defaults, params);
 }
 
 /**
@@ -367,7 +422,7 @@ function createComponent(NewTransactionView) {
     return Component;
 }
 
-},{"../../ractive/ractive-decorators-select2":8,"../../ractive/ractive-transitions-fade":11}],5:[function(require,module,exports){
+},{"../../ractive/ractive-decorators-select2":9,"../../ractive/ractive-transitions-fade":12}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -385,14 +440,23 @@ var _ractiveTransitionsFade2 = _interopRequireDefault(_ractiveTransitionsFade);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function createComponent(RecentTransactionsView) {
+// Default component options and dataset
+var defaultViewOptions = {
+    count: 20, // @todo Currently loads most recent 20, integrate paging eventually
+    data: {
+        sortColumn: 'creationDate',
+        transactions: [],
+        transactionListTitle: 'Transaction list'
+    }
+};
 
-    var Component = Ractive.components.RecentTransactions = RecentTransactionsView.extend({
+function createComponent(TransactionListView, parentViewOptions) {
+    // Merging default component options with parent supplied options
+    var viewOptions = $.extend(true, {}, defaultViewOptions, parentViewOptions);
+
+    var Component = Ractive.components.TransactionList = TransactionListView.extend({
         data: function data() {
-            return {
-                transactions: [],
-                sortColumn: 'creationDate'
-            };
+            return viewOptions.data;
         },
         computed: {
             sortedTransactions: function sortedTransactions() {
@@ -412,14 +476,14 @@ function createComponent(RecentTransactionsView) {
         oninit: function oninit(options) {
             var _this = this;
 
-            console.log('Loading recent transactions');
+            console.log('Loading transactions');
 
             /* Load most recent transactions */
             $.ajax({
                 method: 'GET',
                 url: '/api/v1/transactions',
                 data: {
-                    count: 5
+                    count: viewOptions.count
                 }
             }).done(function (response) {
                 if (response.status === 'ok') {
@@ -444,11 +508,11 @@ function createComponent(RecentTransactionsView) {
             });
         }
     });
-    Component._name = 'RecentTransactions';
+    Component._name = 'TransactionList';
     return Component;
 }
 
-},{"../../ractive/ractive-events-tap":9,"../../ractive/ractive-transitions-fade":11}],6:[function(require,module,exports){
+},{"../../ractive/ractive-events-tap":10,"../../ractive/ractive-transitions-fade":12}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -471,6 +535,10 @@ var _homePage = require('../components/home-page');
 
 var HomePage = _interopRequireWildcard(_homePage);
 
+var _listPage = require('../components/list-page');
+
+var ListPage = _interopRequireWildcard(_listPage);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -482,8 +550,16 @@ var routes = new Map();
 
 routes.set('/', function (context, next) {
     (0, _ractiveLoad2.default)('assets/views/home-page.html').then(function (HomeView) {
-        HomePage.loadDependencies(HomeView).then(function () {
+        HomePage.loadDependencies().then(function () {
             next(null, HomePage.createComponent(HomeView));
+        });
+    }).catch(_ractive2.default);
+});
+
+routes.set('/list', function (context, next) {
+    (0, _ractiveLoad2.default)('assets/views/list-page.html').then(function (ListView) {
+        ListPage.loadDependencies().then(function () {
+            next(null, ListPage.createComponent(ListView));
         });
     }).catch(_ractive2.default);
 });
@@ -503,7 +579,7 @@ routes.set('/', function (context, next) {
 
 exports.default = routes;
 
-},{"../components/home-page":2,"../plugins/router":7,"../ractive/ractive-load":10,"../utils/ractive":12}],7:[function(require,module,exports){
+},{"../components/home-page":2,"../components/list-page":4,"../plugins/router":8,"../ractive/ractive-load":11,"../utils/ractive":13}],8:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -543,7 +619,7 @@ function init(routes, onNavigation) {
     });
 
     (0, _page2.default)({
-        hashbang: true
+        // hashbang: true
     });
 }
 
@@ -552,7 +628,7 @@ function navTo(url) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 /*
@@ -670,7 +746,7 @@ function navTo(url) {
     Ractive.decorators.select2 = _select2Decorator;
 });
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -877,7 +953,7 @@ function handleKeydown(event) {
 
 exports.default = tap;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (process,Buffer){
 'use strict';
 
@@ -1694,7 +1770,7 @@ load.modules = {};
 exports.default = load;
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"_process":18,"buffer":15,"fs":14}],11:[function(require,module,exports){
+},{"_process":19,"buffer":16,"fs":15}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1723,7 +1799,7 @@ function fade(t, params) {
 
 exports.default = fade;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1743,7 +1819,7 @@ function ractiveLoadCatch(err) {
 
 exports.ractiveLoadCatch = ractiveLoadCatch;
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict'
 
 exports.toByteArray = toByteArray
@@ -1854,9 +1930,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],14:[function(require,module,exports){
-
 },{}],15:[function(require,module,exports){
+
+},{}],16:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -3571,7 +3647,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":13,"ieee754":16,"isarray":17}],16:[function(require,module,exports){
+},{"base64-js":14,"ieee754":17,"isarray":18}],17:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -3657,14 +3733,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

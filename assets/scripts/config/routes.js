@@ -3,7 +3,7 @@ import ractiveLoadCatch from '../utils/ractive';
 
 import router from '../plugins/router';
 
-import HomePage from '../components/home-page';
+import * as HomePage from '../components/home-page';
 
 // import UserPage from '../components/user-page';
 // import UserModel from '../models/user';
@@ -12,7 +12,9 @@ var routes = new Map();
 
 routes.set('/', (context, next) => {
     load('assets/views/home-page.html').then((HomeView) => {
-        next(null, HomePage(HomeView));
+        HomePage.loadDependencies(HomeView).then(function() {
+            next(null, HomePage.createComponent(HomeView));
+        });
     }).catch(ractiveLoadCatch);
 });
 

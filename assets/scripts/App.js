@@ -11,6 +11,10 @@ import routesConfiguration from './config/routes';
 import RouterComponent from './components/layout/router';
 import HomePageComponent from './components/home-page';
 
+load('assets/views/app.html').then((AppView) => {
+    initApp(AppView);
+}).catch(ractiveLoadCatch);
+
 function initApp(AppView) {
     let App = new AppView({
         el: '#app',
@@ -55,7 +59,3 @@ function initApp(AppView) {
         }
     });
 }
-
-load('assets/views/app.html').then((AppView) => {
-    initApp(AppView);
-}).catch(ractiveLoadCatch);

@@ -3,6 +3,7 @@
 namespace Budget\Object;
 
 use \DateTime;
+use \DateTimeZone;
 use \Exception;
 use \InvalidArgumentException;
 
@@ -36,6 +37,7 @@ class Transaction extends AbstractModel implements
     protected $modifiedDate;
 
     private $categoryObject;
+    private $creationDateFormatted;
 
     /**
      * @param Container  $container  The dependencies.
@@ -51,11 +53,9 @@ class Transaction extends AbstractModel implements
      */
     public function publicData(array $supplants = null)
     {
-        $creationDate = new DateTime($this->creationDate());
-
         $supplants = [
             'category' => $this->categoryAsObject(),
-            'creationDate' => $creationDate->format('Y-m-d')
+            'creationDate' => $this->creationDateFormatted()
         ];
         return $this->publicDataFromTrait($supplants);
     }
@@ -75,6 +75,23 @@ class Transaction extends AbstractModel implements
             $this->categoryObject = $categoryObject;
         }
         return $this->categoryObject;
+    }
+
+    /**
+     * Preformatted creationDate
+     * @return  string
+     */
+    public function creationDateFormatted () {
+        if (!$this->creationDateFormatted) {
+            $creationDate = $this->creationDate();
+
+            if (!$creationDate instanceof DateTime) {
+                $creationDate = new DateTime($creationDate, new DateTimeZone('America/Montreal'));
+            }
+
+            $this->creationDateFormatted = $creationDate->format('Y-m-d');
+        }
+        return $this->creationDateFormatted;
     }
 
     /** Getters */

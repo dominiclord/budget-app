@@ -338,6 +338,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param {boolean}  type          Expense (false) or income (true)
  * @param {number}   amount        Positive amount
  * @param {string}   category      Category ident
+ * @param {string}   location      Location ident
  * @param {string}   creationDate  YYYY-MM-DD format
  * @param {string}   description   Description
  */
@@ -346,6 +347,7 @@ function getTransactionModel(params) {
         type: 0,
         amount: '',
         category: null,
+        location: null,
         creationDate: '',
         description: ''
     };
@@ -355,27 +357,33 @@ function getTransactionModel(params) {
 /**
  * Decorators need to be in Ractive before any templates are initialized
  */
+var defaultSelect2Options = {
+    createTag: function createTag(params) {
+        var term = $.trim(params.term);
+
+        if (term === '') {
+            return null;
+        }
+
+        return {
+            id: term,
+            text: term,
+            newTag: true
+        };
+    },
+    tags: true,
+    tokenSeparators: [',']
+};
 function prepareDecorators() {
     window.Ractive.decorators.select2.type.transactionCategories = function (node) {
-        /* Select2 options */
-        return {
-            createTag: function createTag(params) {
-                var term = $.trim(params.term);
-
-                if (term === '') {
-                    return null;
-                }
-
-                return {
-                    id: term,
-                    text: term,
-                    newTag: true
-                };
-            },
-            placeholder: 'Select a category',
-            tags: true,
-            tokenSeparators: [',']
-        };
+        return $.extend(true, {}, defaultSelect2Options, {
+            placeholder: 'Select a category'
+        });
+    };
+    window.Ractive.decorators.select2.type.transactionLocations = function (node) {
+        return $.extend(true, {}, defaultSelect2Options, {
+            placeholder: 'Select a location'
+        });
     };
 }
 
@@ -386,13 +394,15 @@ function createComponent(NewTransactionView) {
         data: function data() {
             // Merging basic transaction model dataset with other view specific datasets
             return $.extend(getTransactionModel(), {
-                transactionCategories: []
+                transactionCategories: [],
+                transactionLocations: []
             });
         },
         transitions: { fade: _ractiveTransitionsFade2.default },
 
         /**
          * Load transaction categories
+         * @return this
          */
         loadCategories: function loadCategories() {
             var _this = this;
@@ -408,6 +418,28 @@ function createComponent(NewTransactionView) {
             }).fail(function () {
                 console.log('Error');
             }).always(function () {});
+            return this;
+        },
+
+        /**
+         * Load transaction locations
+         * @return this
+         */
+        loadLocations: function loadLocations() {
+            var _this2 = this;
+
+            $.ajax({
+                method: 'GET',
+                url: '/api/v1/transaction-locations',
+                data: {}
+            }).done(function (response) {
+                if (response.status === 'ok') {
+                    _this2.set('transactionLocations', response.results);
+                }
+            }).fail(function () {
+                console.log('Error');
+            }).always(function () {});
+            return this;
         },
 
         /**
@@ -415,7 +447,7 @@ function createComponent(NewTransactionView) {
          * @param  {array}  options  Array of options
          */
         oninit: function oninit(options) {
-            this.loadCategories();
+            this.loadCategories().loadLocations();
 
             /* Proxy events */
             this.on({
@@ -425,7 +457,7 @@ function createComponent(NewTransactionView) {
                  * @param  {object}  event  Ractive event object
                  */
                 submitTransaction: function submitTransaction(event) {
-                    var _this2 = this;
+                    var _this3 = this;
 
                     // Prevent the page from reloading
                     event.original.preventDefault();
@@ -434,6 +466,7 @@ function createComponent(NewTransactionView) {
                         type: this.get('type'),
                         amount: this.get('amount'),
                         category: this.get('category'),
+                        location: this.get('location'),
                         creationDate: this.get('creationDate'),
                         description: this.get('description')
                     });
@@ -452,18 +485,19 @@ function createComponent(NewTransactionView) {
                             if (typeof transaction !== 'undefined') {
                                 // _this.recentTransactionsController.push('transactions', transaction);
 
-                                // We also update the category list in case of a new creation
-                                _this2.loadCategories();
+                                // We also update the category and location list in case of a new creation
+                                _this3.loadCategories().loadLocations();
                             }
 
                             // Reset the form
                             document.activeElement.blur();
                             $('.valid').removeClass('valid');
 
-                            _this2.set({
+                            _this3.set({
                                 type: 0,
                                 amount: '',
                                 category: null,
+                                location: null,
                                 timestamp: '',
                                 description: ''
                             });
@@ -847,6 +881,8 @@ function navTo(url) {
             var binding = node._ractive.binding;
             var keypath = binding.keypath ? binding.keypath.str : binding.model.key;
             observer = ractive.observe(keypath, function (newvalue) {
+                console.log(keypath);
+                console.log(newvalue);
                 if (!setting) {
                     setting = true;
                     window.setTimeout(function () {

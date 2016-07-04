@@ -78,6 +78,8 @@
             var binding = node._ractive.binding;
             var keypath = binding.keypath ? binding.keypath.str : binding.model.key;
             observer = ractive.observe(keypath, function (newvalue) {
+                console.log(keypath)
+                console.log(newvalue)
                 if (!setting) {
                     setting = true;
                     window.setTimeout(function () {

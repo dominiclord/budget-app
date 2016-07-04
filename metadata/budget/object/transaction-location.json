@@ -1,0 +1,34 @@
+{
+	"config_type": "taxonomy",
+	"module": "budget",
+
+	"properties":{
+        "id": {
+            "type": "id",
+            "mode": "uuid"
+        },
+		"name": {
+			"label": {
+				"en": "Location name"
+			}
+		}
+	},
+
+    "public_properties":[
+        "id",
+        "name"
+    ],
+
+	"data": {
+		"category_item_type": "budget/object/transaction",
+		"category_item_count": 0
+	},
+
+	"sources": {
+		"default": {
+			"type": "database",
+			"table": "budget_transaction_locations"
+		}
+	},
+	"default_source": "default"
+}

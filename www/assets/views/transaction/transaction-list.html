@@ -7,14 +7,17 @@
             <table>
                 <thead>
                     <tr>
+                        <th class="sortable{{#if sortColumn === 'creationDate'}} sorted{{/if}}" on-tap="sort:creationDate">
+                            Date
+                        </th>
                         <th class="sortable{{#if sortColumn === 'amount'}} sorted{{/if}}" on-tap="sort:amount">
                             Amount
                         </th>
                         <th class="sortable{{#if sortColumn === 'category'}} sorted{{/if}}" on-tap="sort:category">
                             Category
                         </th>
-                        <th class="sortable{{#if sortColumn === 'creationDate'}} sorted{{/if}}" on-tap="sort:creationDate">
-                            Date
+                        <th class="sortable{{#if sortColumn === 'location'}} sorted{{/if}}" on-tap="sort:location">
+                            Location
                         </th>
                     </tr>
                 </thead>
@@ -22,9 +25,10 @@
                 <tbody>
                 {{#sortedTransactions}}
                     <tr intro="fade:{delay:{800 + (i * 100)}}">
+                        <td>{{creationDate}}</td>
                         <td><span style="color: {{ (type == 1) ? 'green' : 'red' }};">{{amount}}</span></td>
                         <td><a href="/transaction/{{id}}">{{category.name}}</a></td>
-                        <td>{{creationDate}}</td>
+                        <td>{{location.name}}</td>
                     </tr>
                 {{/sortedTransactions}}
                 </tbody>

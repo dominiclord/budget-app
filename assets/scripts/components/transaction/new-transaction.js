@@ -10,6 +10,7 @@ import select2Decorator from '../../ractive/ractive-decorators-select2'; //@sham
  * @param {boolean}  type          Expense (false) or income (true)
  * @param {number}   amount        Positive amount
  * @param {string}   category      Category ident
+ * @param {string}   location      Location ident
  * @param {string}   creationDate  YYYY-MM-DD format
  * @param {string}   description   Description
  */
@@ -18,6 +19,7 @@ function getTransactionModel(params) {
         type: 0,
         amount: '',
         category: null,
+        location: null,
         creationDate: '',
         description: ''
     };
@@ -27,28 +29,34 @@ function getTransactionModel(params) {
 /**
  * Decorators need to be in Ractive before any templates are initialized
  */
+var defaultSelect2Options = {
+    createTag: function (params) {
+        let term = $.trim(params.term);
+
+        if (term === '') {
+            return null;
+        }
+
+        return {
+            id: term,
+            text: term,
+            newTag: true
+        };
+    },
+    tags: true,
+    tokenSeparators: [',']
+};
 function prepareDecorators() {
     window.Ractive.decorators.select2.type.transactionCategories = function (node) {
-        /* Select2 options */
-        return {
-            createTag: function (params) {
-                let term = $.trim(params.term);
-
-                if (term === '') {
-                    return null;
-                }
-
-                return {
-                    id: term,
-                    text: term,
-                    newTag: true
-                };
-            },
-            placeholder: 'Select a category',
-            tags: true,
-            tokenSeparators: [',']
-        }
-    }
+        return $.extend(true, {}, defaultSelect2Options, {
+            placeholder: 'Select a category'
+        });
+    };
+    window.Ractive.decorators.select2.type.transactionLocations = function (node) {
+        return $.extend(true, {}, defaultSelect2Options, {
+            placeholder: 'Select a location'
+        });
+    };
 }
 
 export function createComponent(NewTransactionView) {
@@ -58,13 +66,15 @@ export function createComponent(NewTransactionView) {
         data: function () {
             // Merging basic transaction model dataset with other view specific datasets
             return $.extend(getTransactionModel(), {
-                transactionCategories: []
+                transactionCategories: [],
+                transactionLocations: []
             });
         },
         transitions: { fade },
 
         /**
          * Load transaction categories
+         * @return this
          */
         loadCategories: function() {
             $.ajax({
@@ -80,7 +90,32 @@ export function createComponent(NewTransactionView) {
             .fail(() => {
                 console.log('Error');
             })
-            .always(() => {});
+            .always(() => {
+            });
+            return this;
+        },
+
+        /**
+         * Load transaction locations
+         * @return this
+         */
+        loadLocations: function() {
+            $.ajax({
+                method: 'GET',
+                url: '/api/v1/transaction-locations',
+                data: {}
+            })
+            .done((response) => {
+                if (response.status === 'ok') {
+                    this.set('transactionLocations', response.results);
+                }
+            })
+            .fail(() => {
+                console.log('Error');
+            })
+            .always(() => {
+            });
+            return this;
         },
 
         /**
@@ -88,7 +123,7 @@ export function createComponent(NewTransactionView) {
          * @param  {array}  options  Array of options
          */
         oninit: function(options) {
-            this.loadCategories();
+            this.loadCategories().loadLocations();
 
             /* Proxy events */
             this.on({
@@ -105,6 +140,7 @@ export function createComponent(NewTransactionView) {
                         type: this.get('type'),
                         amount: this.get('amount'),
                         category: this.get('category'),
+                        location: this.get('location'),
                         creationDate: this.get('creationDate'),
                         description: this.get('description')
                     });
@@ -124,8 +160,8 @@ export function createComponent(NewTransactionView) {
                             if (typeof transaction !== 'undefined') {
                                 // _this.recentTransactionsController.push('transactions', transaction);
 
-                                // We also update the category list in case of a new creation
-                                this.loadCategories();
+                                // We also update the category and location list in case of a new creation
+                                this.loadCategories().loadLocations();
                             }
 
                             // Reset the form
@@ -136,6 +172,7 @@ export function createComponent(NewTransactionView) {
                                 type: 0,
                                 amount: '',
                                 category: null,
+                                location: null,
                                 timestamp: '',
                                 description: ''
                             });

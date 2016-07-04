@@ -32,11 +32,13 @@ class Transaction extends AbstractModel implements
     protected $type;
     protected $amount;
     protected $category;
+    protected $location;
     protected $description;
     protected $creationDate;
     protected $modifiedDate;
 
     private $categoryObject;
+    private $locationObject;
     private $creationDateFormatted;
 
     /**
@@ -55,6 +57,7 @@ class Transaction extends AbstractModel implements
     {
         $supplants = [
             'category' => $this->categoryAsObject(),
+            'location' => $this->locationAsObject(),
             'creationDate' => $this->creationDateFormatted()
         ];
         return $this->publicDataFromTrait($supplants);
@@ -78,10 +81,27 @@ class Transaction extends AbstractModel implements
     }
 
     /**
+     * Return transaction location as object
+     * @return TransactionLocation
+     */
+    public function locationAsObject()
+    {
+        if (!$this->locationObject) {
+            $locationObject = $this
+                ->obj('budget/object/transaction-location')
+                ->load($this->location())
+                ->publicData();
+
+            $this->locationObject = $locationObject;
+        }
+        return $this->locationObject;
+    }
+
+    /**
      * Preformatted creationDate
      * @return  string
      */
-    public function creationDateFormatted () {
+    public function creationDateFormatted() {
         if (!$this->creationDateFormatted) {
             $creationDate = $this->creationDate();
 
@@ -95,10 +115,11 @@ class Transaction extends AbstractModel implements
     }
 
     /** Getters */
-    public function category() { return $this->category; }
     public function active() { return $this->active; }
     public function type() { return $this->type; }
     public function amount() { return $this->amount; }
+    public function category() { return $this->category; }
+    public function location() { return $this->location; }
     public function description() { return $this->description; }
     public function creationDate() { return $this->creationDate; }
     public function modifiedDate() { return $this->modifiedDate; }
@@ -122,6 +143,11 @@ class Transaction extends AbstractModel implements
     public function setCategory($category)
     {
         $this->category = $category;
+        return $this;
+    }
+    public function setLocation($location)
+    {
+        $this->location = $location;
         return $this;
     }
     public function setDescription($description)

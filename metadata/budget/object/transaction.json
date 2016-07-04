@@ -16,6 +16,11 @@
             "obj_type":"budget/object/transaction-category",
             "label":"Category"
         },
+        "location":{
+            "type":"object",
+            "obj_type":"budget/object/transaction-location",
+            "label":"Location"
+        },
         "creationDate":{
             "type":"date-time",
             "label":"Creation date"
@@ -38,6 +43,7 @@
         "id",
         "type",
         "category",
+        "location",
         "creationDate",
         "amount",
         "description"
